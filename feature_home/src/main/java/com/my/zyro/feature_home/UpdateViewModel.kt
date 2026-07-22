@@ -30,7 +30,6 @@ sealed class UpdateState {
 }
 
 
-
 @HiltViewModel
 class UpdateViewModel @Inject constructor(
     private val updateManager: UpdateManager
@@ -52,18 +51,16 @@ class UpdateViewModel @Inject constructor(
         release: Release
     ) {
 
-
         if (_state.value is UpdateState.Downloading) {
             return
         }
-
 
 
         val apkUrl =
             release.assets
                 ?.firstOrNull { asset ->
 
-                    asset.name
+                    asset?.name
                         ?.lowercase()
                         ?.endsWith(".apk") == true
 
@@ -74,26 +71,25 @@ class UpdateViewModel @Inject constructor(
 
         if (apkUrl.isNullOrBlank()) {
 
-
             _state.value =
                 UpdateState.Error(
                     "Nenhum APK encontrado"
                 )
 
-
             return
+
         }
 
 
 
         viewModelScope.launch {
 
-
             try {
 
-
                 _state.value =
-                    UpdateState.Downloading(0)
+                    UpdateState.Downloading(
+                        0
+                    )
 
 
 
@@ -101,7 +97,6 @@ class UpdateViewModel @Inject constructor(
                     updateManager.downloadApk(
                         apkUrl
                     ) { progress ->
-
 
                         _state.value =
                             UpdateState.Downloading(
