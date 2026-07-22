@@ -96,7 +96,7 @@ internal fun ComponentActivity.Zyro(
                 val release = Prefs.getSavedLatestRelease()
                 val user = Prefs.getUser()
                 val viewModel by viewModels<HomeScreenViewModel>()
-                val state = viewModel.aboutScreenState.collectAsState().value
+                val state = viewModel.homeState.collectAsState().value
                 val showBadge = release
                     ?.toVersion()
                     ?.whetherNeedUpdate(BuildConfig.VERSION_NAME.toVersion())
