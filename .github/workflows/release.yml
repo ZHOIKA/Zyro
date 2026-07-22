@@ -1,0 +1,65 @@
+name: Zyro Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+
+      - name: Increase version
+        run: |
+          python3 <<'PY'
+          import re
+
+          file="gradle/libs.versions.toml"
+
+          data=open(file).read()
+
+          code=int(re.search(r'version-code\s*=\s*"(\d+)"', data).group(1))
+          new_code=code+1
+
+          data=re.sub(
+              r'version-code\s*=\s*"\d+"',
+              f'version-code = "{new_code}"',
+              data
+          )
+
+          open(file,"w").write(data)
+
+          print(f"Version code: {code} -> {new_code}")
+          PY
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Zyro Update ${{ github.run_number }}
+          files: |
+            app/build/outputs/apk/debug/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
