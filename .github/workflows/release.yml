@@ -42,6 +42,8 @@ jobs:
       - name: Check Secrets
         run: |
 
+          echo "Checking secrets..."
+
           test -n "${{ secrets.KEYSTORE_BASE64 }}" || exit 1
           test -n "${{ secrets.KEY_ALIAS }}" || exit 1
           test -n "${{ secrets.KEYSTORE_PASSWORD }}" || exit 1
@@ -51,26 +53,44 @@ jobs:
 
 
 
-      - name: Import Keystore
+      - name: Create Keystore
         run: |
 
           echo "${{ secrets.KEYSTORE_BASE64 }}" \
-          | base64 --decode > zyro-release.keystore
+          | base64 -d > zyro-release.keystore
 
 
-          test -s zyro-release.keystore
+          if [ ! -s zyro-release.keystore ]; then
+            echo "Keystore inválido"
+            exit 1
+          fi
+
 
           echo "✅ Keystore criado"
 
 
 
-      - name: Validate Keystore
+      - name: Create keystore.properties
+        run: |
+
+          echo "storeFile=zyro-release.keystore" > keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+
+
+          cat keystore.properties | sed 's/=.*/=***/'
+
+
+
+      - name: Validate Key
         run: |
 
           keytool -list \
           -keystore zyro-release.keystore \
           -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
           -alias "${{ secrets.KEY_ALIAS }}"
+
 
           echo "✅ Chave válida"
 
@@ -88,13 +108,18 @@ jobs:
           data=open(file).read()
 
 
-          old=re.search(
+          match=re.search(
               r'version-code\s*=\s*"(\d+)"',
               data
-          ).group(1)
+          )
 
 
-          new=str(int(old)+1)
+          if not match:
+              raise Exception("version-code não encontrado")
+
+
+          old=int(match.group(1))
+          new=old+1
 
 
           data=re.sub(
@@ -106,38 +131,26 @@ jobs:
 
           open(file,"w").write(data)
 
-          print(old,"->",new)
+
+          print(f"{old} -> {new}")
 
           PY
 
 
 
       - name: Build Release APK
-        env:
-
-          KEYSTORE_FILE: ${{ github.workspace }}/zyro-release.keystore
-
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-
         run: |
 
           chmod +x gradlew
 
-          ./gradlew clean
-
-          ./gradlew assembleRelease
+          ./gradlew clean assembleRelease
 
 
 
       - name: Prepare APK
         run: |
 
-          mkdir release
+          mkdir -p release
 
 
           APK=$(find app/build/outputs/apk/release \
@@ -145,23 +158,19 @@ jobs:
 
 
           if [ ! -f "$APK" ]; then
-
             echo "APK não encontrado"
-
             exit 1
-
           fi
 
 
           cp "$APK" release/Zyro.apk
 
 
-          echo "APK:"
           ls -lh release/Zyro.apk
 
 
 
-      - name: Verify Signature
+      - name: Verify APK
         run: |
 
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
@@ -176,22 +185,20 @@ jobs:
 
 
 
-      - name: Commit Version
+      - name: Save Version Change
         run: |
 
           git config user.name "Zyro Bot"
-
           git config user.email "actions@github.com"
 
 
           git add gradle/libs.versions.toml
 
 
-          git commit \
-          -m "Increase Zyro version" || true
+          git commit -m "Update Zyro version" || echo "No changes"
 
 
-          git push || true
+          git push || echo "Push skipped"
 
 
 
@@ -200,22 +207,17 @@ jobs:
 
         with:
 
-          tag_name: v${{ github.run_number }}
+          tag_name: beta-${{ github.run_number }}
 
-          name: Zyro Beta v${{ github.run_number }}
+          name: Zyro Beta ${{ github.run_number }}
 
           body: |
-
             🚀 Zyro Beta Update
 
-            Signed APK build.
+            Automated signed APK build.
 
-          files:
-
+          files: |
             release/Zyro.apk
-
-
-          generate_release_notes: true
 
 
         env:
