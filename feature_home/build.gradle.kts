@@ -28,5 +28,5 @@ dependencies {
     implementation(projects.common.navigation)
     implementation(libs.coil)
     implementation(libs.activity.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }
