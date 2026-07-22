@@ -3,10 +3,7 @@
  *  ******************************************************************
  *  *  * Copyright (C) 2022
  *  *  * ZyroRepositoryImpl.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of yzziK(Vaibhav)
  *  *  *****************************************************************
- *
  *
  */
 
@@ -31,51 +28,140 @@ import io.ktor.client.statement.HttpResponse
 import java.io.File
 import javax.inject.Inject
 
+
 class ZyroRepositoryImpl @Inject constructor(
     private val api: ApiService,
     private val imgurApi: ImgurApiService,
 ) : ZyroRepository {
 
+
     override suspend fun getImage(url: String): String? {
+
         return if (Prefs[Prefs.USE_IMGUR, false]) {
-            imgurApi.getImage(url, Prefs[Prefs.TOKEN]).getOrNull()?.toExternalAsset()
+
+            imgurApi
+                .getImage(
+                    url,
+                    Prefs[Prefs.TOKEN]
+                )
+                .getOrNull()
+                ?.toExternalAsset()
+
         } else {
-            api.getImage(url).getOrNull()?.toAttachmentAsset()
+
+            api.getImage(url)
+                .getOrNull()
+                ?.toAttachmentAsset()
+
         }
+
     }
+
+
 
     override suspend fun uploadImage(file: File): String? {
+
         return if (Prefs[Prefs.USE_IMGUR, false]) {
-            imgurApi.uploadImage(file, Prefs[Prefs.IMGUR_CLIENT_ID, Constants.IMGUR_CLIENT_ID])
-                .getOrNull()?.toImageURL()?.let { this.getImage(it) }
+
+            imgurApi
+                .uploadImage(
+                    file,
+                    Prefs[
+                        Prefs.IMGUR_CLIENT_ID,
+                        Constants.IMGUR_CLIENT_ID
+                    ]
+                )
+                .getOrNull()
+                ?.toImageURL()
+                ?.let {
+                    this.getImage(it)
+                }
+
         } else {
-            api.uploadImage(file).getOrNull()?.toAttachmentAsset()
+
+            api.uploadImage(file)
+                .getOrNull()
+                ?.toAttachmentAsset()
+
         }
+
     }
+
+
 
     override suspend fun getGames(): List<Game> {
-        return api.getGames().getOrNull()?.body<List<GamesResponse>>()?.map { it.toGame() }
+
+        return api
+            .getGames()
+            .getOrNull()
+            ?.body<List<GamesResponse>>()
+            ?.map {
+                it.toGame()
+            }
             ?: emptyList()
+
     }
+
+
 
     override suspend fun getUser(userid: String): User {
-        return api.getUser(userid).getOrNull()?.body() ?: User()
+
+        val token = Prefs[Prefs.TOKEN, ""]
+
+        return api
+            .getUser(
+                userid,
+                token
+            )
+            .getOrNull()
+            ?.body<User>()
+            ?: User()
+
     }
+
+
 
     override suspend fun getContributors(): List<Contributor> {
-        return api.getContributors().getOrNull()?.body() ?: emptyList()
+
+        return api
+            .getContributors()
+            .getOrNull()
+            ?.body()
+            ?: emptyList()
+
     }
+
+
 
     override suspend fun checkForUpdate(): Release {
-        return api.checkForUpdate().getOrNull()?.releaseBody() ?: Release()
+
+        return api
+            .checkForUpdate()
+            .getOrNull()
+            ?.releaseBody()
+            ?: Release()
+
     }
+
 }
 
+
+
 suspend fun HttpResponse.releaseBody(): Release {
+
     return if (this.status.value == 200) {
-        Prefs.saveLatestRelease(this.body())
+
+        Prefs.saveLatestRelease(
+            this.body()
+        )
+
         this.body()
+
     } else {
-        Prefs.getSavedLatestRelease() ?: Release()
+
+        Prefs.getSavedLatestRelease()
+            ?: Release()
+
     }
+
 }
