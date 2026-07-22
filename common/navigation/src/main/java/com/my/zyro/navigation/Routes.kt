@@ -17,6 +17,9 @@ class Routes {
         /* Home Screen */
         const val HOME = "home"
 
+        /* Splash Screen */
+        const val SPLASH = "splash"
+
         /* Onboarding/Setup Screen */
         const val SETUP = "setup"
 

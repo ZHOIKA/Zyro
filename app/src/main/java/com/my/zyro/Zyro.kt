@@ -52,6 +52,7 @@ import com.my.zyro.feature_settings.rpc_settings.RpcSettings
 import com.my.zyro.feature_settings.style.Appearance
 import com.my.zyro.feature_settings.style.DarkThemePreferences
 import com.my.zyro.feature_startup.StartUp
+import com.my.zyro.feature_startup.SplashScreen
 import com.my.zyro.navigation.Routes
 import com.my.zyro.navigation.animatedComposable
 import com.my.zyro.preference.Prefs
@@ -71,8 +72,15 @@ internal fun ComponentActivity.Zyro(
         val navController = rememberAnimatedNavController()
         AnimatedNavHost(
             navController = navController,
-            startDestination = if (Prefs[Prefs.IS_FIRST_LAUNCHED, true]) Routes.SETUP else Routes.HOME
+            startDestination = Routes.SPLASH
         ) {
+            animatedComposable(Routes.SPLASH) {
+                SplashScreen(onAnimationFinished = {
+                    navController.navigate(if (Prefs[Prefs.IS_FIRST_LAUNCHED, true]) Routes.SETUP else Routes.HOME) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
+                })
+            }
             animatedComposable(Routes.SETUP) {
                 StartUp(
                     usageAccessStatus = usageAccessStatus,

@@ -1,3 +1,6 @@
+# Gemini CLI configuration
+.gemini/
+
 *.iml
 .gradle
 /local.properties
