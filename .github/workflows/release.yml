@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -26,40 +25,66 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      - name: Increase version
+      - name: Update Version Code
         run: |
           python3 <<'PY'
           import re
 
-          file="gradle/libs.versions.toml"
+          file = "gradle/libs.versions.toml"
 
-          data=open(file).read()
+          with open(file, "r") as f:
+              data = f.read()
 
-          code=int(re.search(r'version-code\s*=\s*"(\d+)"', data).group(1))
-          new_code=code+1
+          match = re.search(r'version-code\s*=\s*"(\d+)"', data)
 
-          data=re.sub(
+          if not match:
+              print("version-code not found")
+              exit(0)
+
+          old = int(match.group(1))
+          new = old + 1
+
+          data = re.sub(
               r'version-code\s*=\s*"\d+"',
-              f'version-code = "{new_code}"',
+              f'version-code = "{new}"',
               data
           )
 
-          open(file,"w").write(data)
+          with open(file, "w") as f:
+              f.write(data)
 
-          print(f"Version code: {code} -> {new_code}")
+          print(f"Version {old} -> {new}")
           PY
 
-      - name: Build APK
+      - name: Clean Project
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew clean
 
-      - name: Create Release
+      - name: Build Release APK
+        run: |
+          ./gradlew assembleRelease
+
+      - name: Prepare APK
+        run: |
+          mkdir -p release
+
+          APK=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+
+          if [ -z "$APK" ]; then
+            echo "APK not found"
+            exit 1
+          fi
+
+          cp "$APK" release/Zyro.apk
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
-          name: Zyro Update ${{ github.run_number }}
-          files: |
-            app/build/outputs/apk/debug/*.apk
+          name: Zyro Update v${{ github.run_number }}
+          files: release/Zyro.apk
+          generate_release_notes: true
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -4,7 +4,7 @@ plugins {
     id ("zyro.android.library.compose")
 }
 android {
-    namespace = "com.zyro.color"
+    namespace = "com.my.zyro.color"
 }
 dependencies {
     api(libs.compose.ui)
