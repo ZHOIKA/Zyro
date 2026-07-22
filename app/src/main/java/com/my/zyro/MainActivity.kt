@@ -16,16 +16,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import com.my.zyro.preference.getLanguageConfig
-import com.my.zyro.ui.theme.ZyroTheme
-import com.my.zyro.ui.theme.LocalDarkTheme
-import com.my.zyro.ui.theme.LocalDynamicColorSwitch
-import com.my.zyro.ui.theme.SettingsProvider
+import com.my.zyro.BuildConfig
+import com.my.zyro.domain.model.toVersion
+import com.my.zyro.domain.use_case.check_for_update.CheckForUpdateUseCase
+import com.my.zyro.utils.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    @Inject
+    lateinit var checkForUpdateUseCase: CheckForUpdateUseCase
+
     private lateinit var usageAccessStatus: MutableState<Boolean>
     private lateinit var notificationListenerAccess: MutableState<Boolean>
 
@@ -45,6 +51,18 @@ class MainActivity : AppCompatActivity() {
                     LocaleListCompat.forLanguageTags(getLanguageConfig())
                 )
         }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            checkForUpdateUseCase().collect { result ->
+                if (result is com.my.zyro.domain.model.Resource.Success) {
+                    val release = result.data
+                    if (release != null && release.toVersion() > BuildConfig.VERSION_NAME.toVersion()) {
+                        NotificationHelper.showUpdateNotification(this@MainActivity)
+                    }
+                }
+            }
+        }
+
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
             SettingsProvider(windowSizeClass.widthSizeClass) {
