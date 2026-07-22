@@ -64,7 +64,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 
 import coil.compose.AsyncImage
 
-import com.my.zyro.BuildConfig
+import com.my.zyro.feature_home.BuildConfig
 import com.my.zyro.domain.model.toVersion
 import com.my.zyro.domain.model.user.User
 
