@@ -4,7 +4,7 @@
  *  *  * Copyright (C) 2022
  *  *  * ZyroRespositoryTest.kt is part of Zyro
  *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of yzziK(Vaibhav)
+ *  *  * permission of zk
  *  *  *****************************************************************
  *
  *
@@ -91,8 +91,8 @@ class ZyroRepositoryTest {
 
     @Test
     fun `Get a User Through Api`() = runBlocking {
-        val user = zyroRepository.getUser("888890990956511263")
-        assert(user.username == "yzzik")
+        val user = zyroRepository.getUser("701935437949829202")
+        assert(user.username == "zk")
         assert(user.verified)
     }
 

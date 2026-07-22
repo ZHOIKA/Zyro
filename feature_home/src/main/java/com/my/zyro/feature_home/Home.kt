@@ -4,7 +4,7 @@
  *  *  * Copyright (C) 2022
  *  *  * Home.kt is part of Zyro
  *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of yzziK(Vaibhav)
+ *  *  * permission of zk
  *  *  *****************************************************************
  *
  *
@@ -382,7 +382,7 @@ val fakeUser = User(
     discriminator = "3050",
     id = null,
     publicFlags = null,
-    username = "yzziK",
+    username = "zk",
     special = null,
     verified = false,
     nitro = true,

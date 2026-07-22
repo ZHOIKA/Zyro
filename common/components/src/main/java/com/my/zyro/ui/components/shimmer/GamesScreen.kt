@@ -4,7 +4,7 @@
  *  *  * Copyright (C) 2022
  *  *  * GamesScreen.kt is part of Zyro
  *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of yzziK(Vaibhav)
+ *  *  * permission of zk
  *  *  *****************************************************************
  *
  *
