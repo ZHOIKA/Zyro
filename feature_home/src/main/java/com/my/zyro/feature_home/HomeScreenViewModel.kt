@@ -3,7 +3,7 @@ package com.my.zyro.feature_home
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.my.zyro.BuildConfig
+import com.my.zyro.feature_home.BuildConfig
 import com.my.zyro.domain.model.Resource
 import com.my.zyro.domain.model.release.Release
 import com.my.zyro.domain.model.toVersion
