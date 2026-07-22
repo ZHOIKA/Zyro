@@ -1,15 +1,3 @@
-/*
- *
- *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * AboutScreenViewModel.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of zk
- *  *  *****************************************************************
- *
- *
- */
-
 package com.my.zyro.feature_home
 
 import androidx.compose.runtime.Stable
@@ -25,43 +13,110 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
+
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val checkForUpdateUseCase: CheckForUpdateUseCase
-): ViewModel() {
-    private val _aboutScreenState: MutableStateFlow<HomeScreenState> = MutableStateFlow(
-        HomeScreenState.Loading
-    )
-    val aboutScreenState: StateFlow<HomeScreenState> = _aboutScreenState
+) : ViewModel() {
+
+
+    private val _homeState =
+        MutableStateFlow<HomeScreenState>(
+            HomeScreenState.Loading
+        )
+
+
+    val homeState: StateFlow<HomeScreenState> =
+        _homeState
+
+
 
     fun getLatestUpdate() {
-        checkForUpdateUseCase().onEach { result ->
-            when(result){
-                is Resource.Success -> {
-                    _aboutScreenState.value =
-                        HomeScreenState.LoadingCompleted(result.data ?: Release())
+
+
+        checkForUpdateUseCase()
+            .onEach { result ->
+
+
+                when(result) {
+
+
+                    is Resource.Loading -> {
+
+                        _homeState.value =
+                            HomeScreenState.Loading
+
+                    }
+
+
+
+                    is Resource.Success -> {
+
+
+                        _homeState.value =
+                            HomeScreenState.LoadingCompleted(
+                                result.data ?: Release()
+                            )
+
+                    }
+
+
+
+                    is Resource.Error -> {
+
+
+                        _homeState.value =
+                            HomeScreenState.Error(
+                                result.message
+                                    ?: "Erro ao verificar atualização"
+                            )
+
+                    }
+
                 }
-                is Resource.Error -> {
-                    _aboutScreenState.value =
-                        HomeScreenState.Error(result.message ?: "An unexpected error occurred")
-                }
-                is Resource.Loading -> {
-                    _aboutScreenState.value = HomeScreenState.Loading
-                }
+
+
             }
-        }.launchIn(viewModelScope)
+            .launchIn(viewModelScope)
+
     }
-    fun setReleaseFromPrefs(release: Release){
-        _aboutScreenState.value = HomeScreenState.LoadingCompleted(release)
+
+
+
+    fun setReleaseFromPrefs(
+        release: Release
+    ) {
+
+        _homeState.value =
+            HomeScreenState.LoadingCompleted(
+                release
+            )
+
     }
+
 }
+
+
 
 @Stable
 sealed interface HomeScreenState {
+
+
     @Stable
-    object Loading: HomeScreenState
+    data object Loading : HomeScreenState
+
+
+
     @Stable
-    class Error(val error: String?): HomeScreenState
+    data class Error(
+        val error: String?
+    ) : HomeScreenState
+
+
+
     @Stable
-    class LoadingCompleted(val release: Release): HomeScreenState
+    data class LoadingCompleted(
+        val release: Release
+    ) : HomeScreenState
+
 }
