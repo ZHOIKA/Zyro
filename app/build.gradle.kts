@@ -40,11 +40,11 @@ android {
 
         create("release") {
 
-            val keystorePropertiesFile =
+            val propertiesFile =
                 rootProject.file("keystore.properties")
 
 
-            if (!keystorePropertiesFile.exists()) {
+            if (!propertiesFile.exists()) {
 
                 throw GradleException(
                     "❌ keystore.properties não encontrado"
@@ -52,58 +52,59 @@ android {
             }
 
 
-            val properties = Properties()
+            val props = Properties()
 
 
-            properties.load(
-                keystorePropertiesFile.inputStream()
+            props.load(
+                propertiesFile.inputStream()
             )
 
 
-            val keystoreName =
-                properties.getProperty("storeFile")
+            val keystorePath =
+                props.getProperty("storeFile")
 
 
-            if (keystoreName.isNullOrEmpty()) {
+            if (keystorePath.isNullOrBlank()) {
 
                 throw GradleException(
-                    "❌ storeFile não definido"
+                    "❌ storeFile não configurado"
                 )
             }
 
 
+            val releaseKeystore =
+                rootProject.file(keystorePath)
 
-            storeFile =
-                rootProject.file(keystoreName)
 
-
-            if (!storeFile.exists()) {
+            if (!releaseKeystore.exists()) {
 
                 throw GradleException(
-                    "❌ Keystore não encontrado: $storeFile"
+                    "❌ Arquivo keystore não encontrado: $releaseKeystore"
                 )
             }
 
+
+            storeFile = releaseKeystore
 
 
             storePassword =
-                properties.getProperty("storePassword")
+                props.getProperty("storePassword")
 
 
             keyAlias =
-                properties.getProperty("keyAlias")
+                props.getProperty("keyAlias")
 
 
             keyPassword =
-                properties.getProperty("keyPassword")
-
+                props.getProperty("keyPassword")
 
 
             println(
-                "✅ Keystore carregado: $storeFile"
+                "✅ Release keystore: $releaseKeystore"
             )
         }
     }
+
 
 
 
@@ -113,8 +114,7 @@ android {
 
         debug {
 
-            applicationIdSuffix =
-                ".debug"
+            applicationIdSuffix = ".debug"
         }
 
 
@@ -215,7 +215,6 @@ dependencies {
 
 
 
-
     // Extras
 
     implementation(libs.app.compat)
@@ -223,7 +222,6 @@ dependencies {
     implementation(libs.accompanist.navigation.animation)
 
     implementation(libs.kotlinx.serialization.json)
-
 
 
 
