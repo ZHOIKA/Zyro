@@ -1,13 +1,13 @@
 import com.android.build.api.dsl.LibraryDefaultConfig
 
 plugins {
-    id("kizzy.android.library")
-    id("kizzy.android.hilt")
+    id("zyro.android.library")
+    id("zyro.android.hilt")
     alias(libs.plugins.kotlinx.serialization)
 }
 
 android {
-    namespace = "com.my.kizzy.data"
+    namespace = "com.my.zyro.data"
     defaultConfig {
         buildConfigFieldFromGradleProperty("BASE_URL","BASE_URL")
         buildConfigFieldFromGradleProperty("DISCORD_API_BASE_URL","DISCORD_API_URL")

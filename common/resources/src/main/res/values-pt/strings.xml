@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">Nome da atividade</string>
@@ -54,7 +54,7 @@
     <string name="design_credits">Créditos do design</string>
     <string name="enable_appsRpc">Ativar detecção de app</string>
     <string name="usage_access">Acesso aos dados de uso</string>
-    <string name="usage_access_desc">O acesso aos dados de uso é necessário para que o Kizzy saiba qual app está atualmente em execução.</string>
+    <string name="usage_access_desc">O acesso aos dados de uso é necessário para que o Zyro saiba qual app está atualmente em execução.</string>
     <string name="enable_mediaRpc">Ativar RPC de mídia</string>
     <string name="permission_required">Permissão necessária</string>
     <string name="enable_customRpc">Ativar RPC custom.</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">Esconder RPC ao pausar</string>
     <string name="idling_notification">Ausente…</string>
     <string name="main_appDetection">Detecção de App</string>
-    <string name="main_appDetection_details">O Kizzy te permite compartilhar sua atividade atual no Discord detectando qual app você está usando no seu dispositivo.</string>
+    <string name="main_appDetection_details">O Zyro te permite compartilhar sua atividade atual no Discord detectando qual app você está usando no seu dispositivo.</string>
     <string name="main_mediaRpc">RPC de Mídia</string>
-    <string name="main_mediaRpc_details">O Kizzy te permite compartilhar sua atividade de mídia atual no Discord, como a música ou o vídeo que você está atualmente ouvindo ou assistindo.</string>
+    <string name="main_mediaRpc_details">O Zyro te permite compartilhar sua atividade de mídia atual no Discord, como a música ou o vídeo que você está atualmente ouvindo ou assistindo.</string>
     <string name="main_customRpc">RPC Custom.</string>
     <string name="main_consoleRpc">RPC de Console</string>
-    <string name="main_consoleRpc_details">O Kizzy te permite usar algumas predefinições para definir sua atividade no Discord.</string>
+    <string name="main_consoleRpc_details">O Zyro te permite usar algumas predefinições para definir sua atividade no Discord.</string>
     <string name="main_experimentalRpc">RPC Experimental</string>
-    <string name="main_experimentalRpc_details">O RPC Experimental é um recurso do Kizzy que alterna constantemente entre RPCs de apps e RPCs de mídia.</string>
-    <string name="main_customRpc_details">O Kizzy te permite criar seu próprio rich presence completamente personalizável para o Discord.</string>
+    <string name="main_experimentalRpc_details">O RPC Experimental é um recurso do Zyro que alterna constantemente entre RPCs de apps e RPCs de mídia.</string>
+    <string name="main_customRpc_details">O Zyro te permite criar seu próprio rich presence completamente personalizável para o Discord.</string>
     <string name="main_comingSoon">Em breve</string>
     <string name="exit">Sair</string>
     <string name="logs">Logs</string>

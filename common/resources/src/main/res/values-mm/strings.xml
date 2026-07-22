@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">လုပ်ဆောင်မှု နာမည်</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">Hide RPC on Pause</string>
     <string name="idling_notification">Idling…</string>
     <string name="main_appDetection">App Detection</string>
-    <string name="main_appDetection_details">Kizzy allows you to share your current activity on Discord by detecting what app you\'re using on your device.</string>
+    <string name="main_appDetection_details">Zyro allows you to share your current activity on Discord by detecting what app you\'re using on your device.</string>
     <string name="main_mediaRpc">Media RPC</string>
-    <string name="main_mediaRpc_details">Kizzy allows you to share your current media activity on Discord, such as the song or video you\'re currently listening to or watching.</string>
+    <string name="main_mediaRpc_details">Zyro allows you to share your current media activity on Discord, such as the song or video you\'re currently listening to or watching.</string>
     <string name="main_customRpc">Custom RPC</string>
     <string name="main_consoleRpc">Console RPC</string>
-    <string name="main_consoleRpc_details">Kizzy allows you to use some predefined presets to set your presence on Discord.</string>
+    <string name="main_consoleRpc_details">Zyro allows you to use some predefined presets to set your presence on Discord.</string>
     <string name="main_experimentalRpc">Experimental RPC</string>
-    <string name="main_experimentalRpc_details">Experimental RPC is a feature in Kizzy that constantly switches between Apps RPC and Media RPC.</string>
-    <string name="main_customRpc_details">Kizzy allows you to create your own fully customisable rich presence for Discord.</string>
+    <string name="main_experimentalRpc_details">Experimental RPC is a feature in Zyro that constantly switches between Apps RPC and Media RPC.</string>
+    <string name="main_customRpc_details">Zyro allows you to create your own fully customisable rich presence for Discord.</string>
     <string name="main_comingSoon">Coming Soon</string>
     <string name="exit">Exit</string>
     <string name="logs">Logs</string>

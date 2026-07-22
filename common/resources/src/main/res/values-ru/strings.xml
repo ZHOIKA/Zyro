@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">Название активности</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">Скрыть RPC при паузе</string>
     <string name="idling_notification">Ожидание…</string>
     <string name="main_appDetection">Обнаружение приложений</string>
-    <string name="main_appDetection_details">Kizzy позволяет вам поделиться используемым в данный момент приложением в статус Discord.</string>
+    <string name="main_appDetection_details">Zyro позволяет вам поделиться используемым в данный момент приложением в статус Discord.</string>
     <string name="main_mediaRpc">RPC медиа-контента</string>
-    <string name="main_mediaRpc_details">Kizzy позволяет вам поделиться воспроизводимым на данный момент медиа-контентом, к примеру песня или видео.</string>
+    <string name="main_mediaRpc_details">Zyro позволяет вам поделиться воспроизводимым на данный момент медиа-контентом, к примеру песня или видео.</string>
     <string name="main_customRpc">Свой RPC</string>
     <string name="main_consoleRpc">RPC с консолей</string>
-    <string name="main_consoleRpc_details">Kizzy позволяет вам использовать предустановленные пресеты для статуса в Discord.</string>
+    <string name="main_consoleRpc_details">Zyro позволяет вам использовать предустановленные пресеты для статуса в Discord.</string>
     <string name="main_experimentalRpc">Экспериментальный RPC</string>
     <string name="main_experimentalRpc_details">Экспериментальный RPC постоянно переключается между обнаружением приложений и RPC медиа-контента.</string>
-    <string name="main_customRpc_details">Kizzy позволяет создать полностью изменяемый статус Discord.</string>
+    <string name="main_customRpc_details">Zyro позволяет создать полностью изменяемый статус Discord.</string>
     <string name="main_comingSoon">В будущем…</string>
     <string name="exit">Выйти</string>
     <string name="logs">Логи</string>

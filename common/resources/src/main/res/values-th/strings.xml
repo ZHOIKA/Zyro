@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">ชื่อของกิจกรรมที่คุณต้องการตามใจนึก!</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">ซ่อน RPC ระหว่างหยุดการใช้งาน</string>
     <string name="idling_notification">กำลังว่าง…</string>
     <string name="main_appDetection">App Detection</string>
-    <string name="main_appDetection_details">Kizzy อนุญาตให้คุณแชร์กิจกรรมที่กำลังเล่นอยู่บน Discord โดยที่ตัวแอปจะตรวจสอบว่าคุณใช้แอปอะไรอยู่ในมือถือของคุณ</string>
+    <string name="main_appDetection_details">Zyro อนุญาตให้คุณแชร์กิจกรรมที่กำลังเล่นอยู่บน Discord โดยที่ตัวแอปจะตรวจสอบว่าคุณใช้แอปอะไรอยู่ในมือถือของคุณ</string>
     <string name="main_mediaRpc">Media RPC</string>
-    <string name="main_mediaRpc_details">Kizzy อนุญาตให้คุณแชร์สถานะกิจกรรมสื่อมีเดียที่กำลังดูหรือฟังอยู่บน Discord โดยแอปจะตรวจเพลงหรือวิดีโอที่คุณกำลังฟังหรือดูอยู่</string>
+    <string name="main_mediaRpc_details">Zyro อนุญาตให้คุณแชร์สถานะกิจกรรมสื่อมีเดียที่กำลังดูหรือฟังอยู่บน Discord โดยแอปจะตรวจเพลงหรือวิดีโอที่คุณกำลังฟังหรือดูอยู่</string>
     <string name="main_customRpc">Custom RPC</string>
     <string name="main_consoleRpc">Console RPC</string>
-    <string name="main_consoleRpc_details">Kizzy อนุญาตให้คุณใช้พรีเซ็ตที่กำหนดไว้ล่วงหน้าเพื่อกำหนดสถานะของคุณบน Discord ได้</string>
+    <string name="main_consoleRpc_details">Zyro อนุญาตให้คุณใช้พรีเซ็ตที่กำหนดไว้ล่วงหน้าเพื่อกำหนดสถานะของคุณบน Discord ได้</string>
     <string name="main_experimentalRpc">Experimental RPC</string>
-    <string name="main_experimentalRpc_details">Experimental RPC เป็นฟีเจอร์ในแอป Kizzy มีการสลับการใช้ฟีเจอร์ระหว่าง Apps RPC และ Media RPC อย่างเรียบเนียบ</string>
-    <string name="main_customRpc_details">Kizzy ยอมให้คุณสร้างสถานะกิจกรรมของdiscord ตามใจชอบแบบเต็มพิกัดได้เลย!</string>
+    <string name="main_experimentalRpc_details">Experimental RPC เป็นฟีเจอร์ในแอป Zyro มีการสลับการใช้ฟีเจอร์ระหว่าง Apps RPC และ Media RPC อย่างเรียบเนียบ</string>
+    <string name="main_customRpc_details">Zyro ยอมให้คุณสร้างสถานะกิจกรรมของdiscord ตามใจชอบแบบเต็มพิกัดได้เลย!</string>
     <string name="main_comingSoon">อดใจไว้ก่อน ฟีเจอร์ใหม่ยังไม่มา</string>
     <string name="exit">ออก</string>
     <string name="logs">บันทึกการทำงาน</string>

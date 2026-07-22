@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Kizzy</string>
-    <string name="qs_tile_label" translatable="false">Kizzy Quickie</string>
+    <string name="app_name">Zyro</string>
+    <string name="qs_tile_label" translatable="false">Zyro Quickie</string>
 
     <!-- Activities -->
     <string name="activity_name">نام فعالیت</string>
@@ -105,15 +105,15 @@
     <string name="hide_on_pause">مخفی کردن RPC موقع Pause</string>
     <string name="idling_notification">بیکار…</string>
     <string name="main_appDetection">تشخیص برنامه</string>
-    <string name="main_appDetection_details">Kizzy به شما امکان می‌دهد با شناسایی برنامه‌ای که در دستگاه خود استفاده می‌کنید، فعالیت فعلی خود را در Discord به اشتراک بگذارید.</string>
+    <string name="main_appDetection_details">Zyro به شما امکان می‌دهد با شناسایی برنامه‌ای که در دستگاه خود استفاده می‌کنید، فعالیت فعلی خود را در Discord به اشتراک بگذارید.</string>
     <string name="main_mediaRpc">RPC رسانه</string>
-    <string name="main_mediaRpc_details">Kizzy به شما امکان می دهد فعالیت رسانه ای فعلی خود را در Discord به اشتراک بگذارید، مانند آهنگ یا ویدیویی که در حال حاضر به آن گوش می دهید یا تماشا می کنید.</string>
+    <string name="main_mediaRpc_details">Zyro به شما امکان می دهد فعالیت رسانه ای فعلی خود را در Discord به اشتراک بگذارید، مانند آهنگ یا ویدیویی که در حال حاضر به آن گوش می دهید یا تماشا می کنید.</string>
     <string name="main_customRpc">RPC سفارشی</string>
     <string name="main_consoleRpc">RPC کنسول</string>
-    <string name="main_consoleRpc_details">Kizzy به شما این امکان را می دهد که از برخی از تنظیمات از پیش تعریف شده برای تنظیم حضور خود در Discord استفاده کنید.</string>
+    <string name="main_consoleRpc_details">Zyro به شما این امکان را می دهد که از برخی از تنظیمات از پیش تعریف شده برای تنظیم حضور خود در Discord استفاده کنید.</string>
     <string name="main_experimentalRpc">RPC آزمایشی</string>
-    <string name="main_experimentalRpc_details">RPC آزمایشی یک ویژگی در Kizzy است که دائماً بین Apps RPC و Media RPC جابه‌جا می‌شود.</string>
-    <string name="main_customRpc_details">Kizzy به شما این امکان را می دهد که حضور غنی کاملاً قابل تنظیم خود را برای Discord ایجاد کنید.</string>
+    <string name="main_experimentalRpc_details">RPC آزمایشی یک ویژگی در Zyro است که دائماً بین Apps RPC و Media RPC جابه‌جا می‌شود.</string>
+    <string name="main_customRpc_details">Zyro به شما این امکان را می دهد که حضور غنی کاملاً قابل تنظیم خود را برای Discord ایجاد کنید.</string>
     <string name="main_comingSoon">به‌زودی</string>
     <string name="exit">خروج</string>
     <string name="logs">لاگ ها</string>

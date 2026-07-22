@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- النشاطات -->
     <string name="activity_name">اسم النشاط</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">إخفاء RPC عند الإيقاف المؤقت</string>
     <string name="idling_notification">خامل...</string>
     <string name="main_appDetection">اكتشاف التطبيقات</string>
-    <string name="main_appDetection_details">يسمح لك Kizzy بمشاركة نشاطك الحالي على Discord عن طريق اكتشاف التطبيق الذي تستخدمه على جهازك.</string>
+    <string name="main_appDetection_details">يسمح لك Zyro بمشاركة نشاطك الحالي على Discord عن طريق اكتشاف التطبيق الذي تستخدمه على جهازك.</string>
     <string name="main_mediaRpc">RPC الوسائط</string>
-    <string name="main_mediaRpc_details">يسمح لك Kizzy بمشاركة نشاط الوسائط الحالي على Discord، مثل الأغنية أو الفيديو الذي تستمع إليه أو تشاهده حالياً.</string>
+    <string name="main_mediaRpc_details">يسمح لك Zyro بمشاركة نشاط الوسائط الحالي على Discord، مثل الأغنية أو الفيديو الذي تستمع إليه أو تشاهده حالياً.</string>
     <string name="main_customRpc">RPC مخصص</string>
     <string name="main_consoleRpc">RPC وحدة التحكم</string>
-    <string name="main_consoleRpc_details">يسمح لك Kizzy باستخدام بعض الإعدادات المسبقة المحددة لتعيين تواجدك على Discord.</string>
+    <string name="main_consoleRpc_details">يسمح لك Zyro باستخدام بعض الإعدادات المسبقة المحددة لتعيين تواجدك على Discord.</string>
     <string name="main_experimentalRpc">RPC تجريبي</string>
-    <string name="main_experimentalRpc_details">RPC التجريبي هو ميزة في Kizzy تقوم بالتبديل المستمر بين RPC التطبيقات و RPC الوسائط.</string>
-    <string name="main_customRpc_details">يسمح لك Kizzy بإنشاء حضور غني مخصص بالكامل لـ Discord.</string>
+    <string name="main_experimentalRpc_details">RPC التجريبي هو ميزة في Zyro تقوم بالتبديل المستمر بين RPC التطبيقات و RPC الوسائط.</string>
+    <string name="main_customRpc_details">يسمح لك Zyro بإنشاء حضور غني مخصص بالكامل لـ Discord.</string>
     <string name="main_comingSoon">قريباً</string>
     <string name="exit">خروج</string>
     <string name="logs">السجلات</string>
@@ -129,7 +129,7 @@
     <string name="yes">نعم</string>
     <string name="user_profile_error">تعذر تحديث الملف الشخصي للمستخدم:</string>
     <string name="no_internet_user_profile">لا يوجد اتصال بالإنترنت. حاول مرة أخرى لاحقاً.</string>
-    <string name="user_profile_rpc_name">يستخدم Kizzy RPC</string>
+    <string name="user_profile_rpc_name">يستخدم Zyro RPC</string>
     <string name="user_profile_bio">عني</string>
     <string name="user_profile_special_button">زر خاص</string>
     <string name="user_profile">الملف الشخصي للمستخدم</string>

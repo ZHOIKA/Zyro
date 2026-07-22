@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Kizzy</string>
-    <string name="qs_tile_label" translatable="false">Kizzy Quickie</string>
+    <string name="app_name">Zyro</string>
+    <string name="qs_tile_label" translatable="false">Zyro Quickie</string>
 
     <!-- Activities -->
     <string name="activity_name">活動名稱</string>
@@ -35,7 +35,7 @@
     <string name="enable_album_name">顯示專輯名稱</string>
     <string name="show_app_icon">顯示應用程式圖示</string>
     <string name="enable_timestamps">顯示時間戳</string>
-    <string name="text_after_permission_denied">Kizzy 必需要所有檔案的存取權才能將設定檔儲存在公用資料夾中。請授予權限。</string>
+    <string name="text_after_permission_denied">Zyro 必需要所有檔案的存取權才能將設定檔儲存在公用資料夾中。請授予權限。</string>
     <string name="request_for_storage_access">設定檔功能必需要所有檔案的存取權才能正常運作。請授予權限。</string>
     <string name="grant_permission">授予權限</string>
     <string name="use_low_res_icon">使用低畫質的圖示</string>
@@ -78,7 +78,7 @@
     <string name="android_on">開啟</string>
     <string name="android_off">關閉</string>
     <string name="setup">設定</string>
-    <string name="user_data_policy">Kizzy 不會收集任何用戶資料</string>
+    <string name="user_data_policy">Zyro 不會收集任何用戶資料</string>
     <string name="setup_desc">在繼續之前，建議執行必要的操作以確保所有功能都能正常運作。</string>
     <string name="permission_granted">已授予</string>
     <string name="permission_not_granted">未授予，請點擊並允許。</string>
@@ -107,13 +107,13 @@
     <string name="main_appDetection">應用程式檢測</string>
     <string name="main_appDetection_details"></string>
     <string name="main_mediaRpc">媒體 RPC</string>
-    <string name="main_mediaRpc_details">Kizzy 在 Discord 上分享透過偵測裝置上正在使用的應用程式。</string>
+    <string name="main_mediaRpc_details">Zyro 在 Discord 上分享透過偵測裝置上正在使用的應用程式。</string>
     <string name="main_customRpc">自定 RPC</string>
     <string name="main_consoleRpc">Console RPC</string>
-    <string name="main_consoleRpc_details">Kizzy 可以您使用一些預先定義的範本來設定您在 Discord 上的 Rich Presence。</string>
+    <string name="main_consoleRpc_details">Zyro 可以您使用一些預先定義的範本來設定您在 Discord 上的 Rich Presence。</string>
     <string name="main_experimentalRpc">實驗性 RPC</string>
     <string name="main_experimentalRpc_details"></string>
-    <string name="main_customRpc_details">實驗性 RPC 是 Kizzy 中的一項功能，它會不斷在應用程式 RPC 和媒體 RPC 之間切換。</string>
+    <string name="main_customRpc_details">實驗性 RPC 是 Zyro 中的一項功能，它會不斷在應用程式 RPC 和媒體 RPC 之間切換。</string>
     <string name="main_comingSoon">即將推出</string>
     <string name="exit">離開</string>
     <string name="logs">日誌</string>
@@ -122,7 +122,7 @@
     <string name="go_to_profile">前往個人資料</string>
     <string name="version">版本</string>
     <string name="try_again">重試</string>
-    <string name="request_for_notification_access">Kizzy 需要讀取通知權限來獲得媒體資訊。</string>
+    <string name="request_for_notification_access">Zyro 需要讀取通知權限來獲得媒體資訊。</string>
     <string name="update_check_for_update">正在檢查更新…</string>
     <string name="update_no_updates_available">沒有可用更新</string>
     <string name="compact_mode">密集模式</string>

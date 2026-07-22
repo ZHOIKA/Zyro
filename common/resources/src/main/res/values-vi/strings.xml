@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">Tên hoạt động</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">Ẩn hoạt động khi dừng</string>
     <string name="idling_notification">Đang ngưng…</string>
     <string name="main_appDetection">Nhận diện Ứng dụng</string>
-    <string name="main_appDetection_details">Kizzy cho phép bạn chia sẻ ứng dụng bạn đang sử dụng bằng hoạt động Discord.</string>
+    <string name="main_appDetection_details">Zyro cho phép bạn chia sẻ ứng dụng bạn đang sử dụng bằng hoạt động Discord.</string>
     <string name="main_mediaRpc">RPC Trình Phát</string>
-    <string name="main_mediaRpc_details">Kizzy cho phép bạn chia sẻ hoạt động đa phương tiện của bạn, như bài hát bạn đang nghe hay video đang xem, lên Discord</string>
+    <string name="main_mediaRpc_details">Zyro cho phép bạn chia sẻ hoạt động đa phương tiện của bạn, như bài hát bạn đang nghe hay video đang xem, lên Discord</string>
     <string name="main_customRpc">RPC Tùy Chỉnh</string>
     <string name="main_consoleRpc">RPC Trò Chơi</string>
-    <string name="main_consoleRpc_details">Kizzy cho phép bạn sử dụng một vài cấu hình đã định sẵn để thêm vào hoạt động Discord.</string>
+    <string name="main_consoleRpc_details">Zyro cho phép bạn sử dụng một vài cấu hình đã định sẵn để thêm vào hoạt động Discord.</string>
     <string name="main_experimentalRpc">RPC Thử Nghiệm</string>
     <string name="main_experimentalRpc_details">RPC Thử Nghiệm là tính năng tự động chuyền đổi giữa Nhận diện ứng dụng và RPC trình phát.</string>
-    <string name="main_customRpc_details">Kizzy cho phép bạn tạo một hoạt động tùy chỉnh cho Discord.</string>
+    <string name="main_customRpc_details">Zyro cho phép bạn tạo một hoạt động tùy chỉnh cho Discord.</string>
     <string name="main_comingSoon">Sắp Ra Mắt</string>
     <string name="exit">Thoát</string>
     <string name="logs">Log</string>

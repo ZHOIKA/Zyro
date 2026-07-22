@@ -43,4 +43,4 @@ include(
     ":feature_experimental_rpc"
 
 )
-rootProject.name = "Kizzy"
+rootProject.name = "Zyro"

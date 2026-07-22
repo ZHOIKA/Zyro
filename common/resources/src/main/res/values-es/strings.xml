@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
     <string name="activity_name">Nombre de la Actividad</string>
     <string name="activity_details">Detalles de la Actividad</string>
     <string name="activity_state">Estado de la Actividad</string>
@@ -102,15 +102,15 @@
     <string name="hide_on_pause">Ocultar RPC en Pausa</string>
     <string name="idling_notification">Inactivo…</string>
     <string name="main_appDetection">Detección de Aplicaciones</string>
-    <string name="main_appDetection_details">Kizzy te permite compartir tu actividad actual en Discord detectando qué aplicación estás usando en tu dispositivo.</string>
+    <string name="main_appDetection_details">Zyro te permite compartir tu actividad actual en Discord detectando qué aplicación estás usando en tu dispositivo.</string>
     <string name="main_mediaRpc">Media RPC</string>
-    <string name="main_mediaRpc_details">Kizzy te permite compartir tu actividad de medios actual en Discord, como la canción o el video que estás escuchando o viendo actualmente.</string>
+    <string name="main_mediaRpc_details">Zyro te permite compartir tu actividad de medios actual en Discord, como la canción o el video que estás escuchando o viendo actualmente.</string>
     <string name="main_customRpc">RPC Personalizado</string>
     <string name="main_consoleRpc">Console RPC</string>
-    <string name="main_consoleRpc_details">Kizzy te permite usar algunos ajustes predefinidos para establecer tu presencia en Discord.</string>
+    <string name="main_consoleRpc_details">Zyro te permite usar algunos ajustes predefinidos para establecer tu presencia en Discord.</string>
     <string name="main_experimentalRpc">RPC Experimental</string>
-    <string name="main_experimentalRpc_details">RPC Experimental es una función en Kizzy que cambia constantemente entre Apps RPC y Media RPC.</string>
-    <string name="main_customRpc_details">Kizzy te permite crear tu propia presencia enriquecida totalmente personalizable para Discord.</string>
+    <string name="main_experimentalRpc_details">RPC Experimental es una función en Zyro que cambia constantemente entre Apps RPC y Media RPC.</string>
+    <string name="main_customRpc_details">Zyro te permite crear tu propia presencia enriquecida totalmente personalizable para Discord.</string>
     <string name="main_comingSoon">Próximamente</string>
     <string name="exit">Salir</string>
     <string name="logs">Registros</string>

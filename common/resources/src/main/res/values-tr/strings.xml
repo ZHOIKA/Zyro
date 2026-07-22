@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">Etkinlik Adı</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">Duraklatınca RPC\'yi gizle</string>
     <string name="idling_notification">Boşta…</string>
     <string name="main_appDetection">Uygulama Algılama</string>
-    <string name="main_appDetection_details">Kizzy, hangi uygulamayı kullandığını algılar ve bunu Discord\'da paylaşır.</string>
+    <string name="main_appDetection_details">Zyro, hangi uygulamayı kullandığını algılar ve bunu Discord\'da paylaşır.</string>
     <string name="main_mediaRpc">Medya RPC</string>
-    <string name="main_mediaRpc_details">Kizzy, dinlediğin şarkı veya videoları algılar ve bunu Discord\'da paylaşır.</string>
+    <string name="main_mediaRpc_details">Zyro, dinlediğin şarkı veya videoları algılar ve bunu Discord\'da paylaşır.</string>
     <string name="main_customRpc">Özel RPC</string>
     <string name="main_consoleRpc">Konsol RPC</string>
     <string name="main_consoleRpc_details">Discord\'da konsol oyunu (PS/Xbox vb.) oynuyormuş gibi görünmeni sağlar.</string>
     <string name="main_experimentalRpc">Deneysel RPC</string>
     <string name="main_experimentalRpc_details">Uygulama ve Medya RPC arasında otomatik geçiş yapan deneysel özellik.</string>
-    <string name="main_customRpc_details">Kizzy ile tamamen kendine özel bir Discord durumu oluştur.</string>
+    <string name="main_customRpc_details">Zyro ile tamamen kendine özel bir Discord durumu oluştur.</string>
     <string name="main_comingSoon">Yakında</string>
     <string name="exit">Çıkış</string>
     <string name="logs">Kayıtlar</string>

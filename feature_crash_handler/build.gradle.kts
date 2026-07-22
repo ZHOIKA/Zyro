@@ -1,11 +1,11 @@
 plugins {
-    id ("kizzy.android.library")
-    id ("kizzy.android.library.compose")
-    id ("kizzy.android.feature")
+    id ("zyro.android.library")
+    id ("zyro.android.library.compose")
+    id ("zyro.android.feature")
 }
 
 android {
-    namespace = "com.my.kizzy.feature_crash_handler"
+    namespace = "com.my.zyro.feature_crash_handler"
 }
 
 dependencies {

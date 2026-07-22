@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kizzy</string>
+    <string name="app_name">Zyro</string>
 
     <!-- Activities -->
     <string name="activity_name">Nome Attività</string>
@@ -104,15 +104,15 @@
     <string name="hide_on_pause">Nascondi RPC se in pausa</string>
     <string name="idling_notification">Inattivo…</string>
     <string name="main_appDetection">Rilevazione App</string>
-    <string name="main_appDetection_details">Kizzy permette di condividere la tua Attività su Discord rilevando quale app stai usando sul tuo dispositivo.</string>
+    <string name="main_appDetection_details">Zyro permette di condividere la tua Attività su Discord rilevando quale app stai usando sul tuo dispositivo.</string>
     <string name="main_mediaRpc">RPC media</string>
-    <string name="main_mediaRpc_details">Kizzy permette di condividere la tua Attività multimediale su Discord, come ad esempio la musica od il video che stai ascoltando o guardando.</string>
+    <string name="main_mediaRpc_details">Zyro permette di condividere la tua Attività multimediale su Discord, come ad esempio la musica od il video che stai ascoltando o guardando.</string>
     <string name="main_customRpc">RPC personalizzato</string>
     <string name="main_consoleRpc">RPC console</string>
-    <string name="main_consoleRpc_details">Kizzy permette di utilizzare delle preconfigurazioni per impostare il tuo Rich Presence su Discord.</string>
+    <string name="main_consoleRpc_details">Zyro permette di utilizzare delle preconfigurazioni per impostare il tuo Rich Presence su Discord.</string>
     <string name="main_experimentalRpc">RPC sperimentale</string>
-    <string name="main_experimentalRpc_details">RPC sperimentale è una funzione in Kizzy che cambia costantemnte fra RPC app e media.</string>
-    <string name="main_customRpc_details">Kizzy permette di creare un Rich Presence per Discord completamente personalizzato.</string>
+    <string name="main_experimentalRpc_details">RPC sperimentale è una funzione in Zyro che cambia costantemnte fra RPC app e media.</string>
+    <string name="main_customRpc_details">Zyro permette di creare un Rich Presence per Discord completamente personalizzato.</string>
     <string name="main_comingSoon">In arrivo</string>
     <string name="exit">Uscita</string>
     <string name="logs">Log</string>

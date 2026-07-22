@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Kizzy</string>
-    <string name="qs_tile_label" translatable="false">Kizzy Quickie</string>
+    <string name="app_name">Zyro</string>
+    <string name="qs_tile_label" translatable="false">Zyro Quickie</string>
 
     <!-- Activities -->
     <string name="activity_name"> שם הפעילות</string>
@@ -105,15 +105,15 @@
     <string name="hide_on_pause">הסתר RPC בהשהיה</string>
     <string name="idling_notification">הִתבַּטְלוּת…</string>
     <string name="main_appDetection">זיהוי אפליקציות</string>
-    <string name="main_appDetection_details">Kizzy מאפשר לך לשתף את הפעילות הנוכחית שלך בדיסקורד על ידי זיהוי האפליקציה שבה אתה משתמש במכשיר שלך.</string>
+    <string name="main_appDetection_details">Zyro מאפשר לך לשתף את הפעילות הנוכחית שלך בדיסקורד על ידי זיהוי האפליקציה שבה אתה משתמש במכשיר שלך.</string>
     <string name="main_mediaRpc">RPC של המדיה</string>
-    <string name="main_mediaRpc_details">Kizzy מאפשר לך לשתף את פעילות המדיה הנוכחית שלך בדיסקורד, כמו השיר או הסרטון שאתה מאזין לו או צופה בו כרגע.</string>
+    <string name="main_mediaRpc_details">Zyro מאפשר לך לשתף את פעילות המדיה הנוכחית שלך בדיסקורד, כמו השיר או הסרטון שאתה מאזין לו או צופה בו כרגע.</string>
     <string name="main_customRpc">RPC מותאם אישית</string>
     <string name="main_consoleRpc">קונסולה RPC</string>
-    <string name="main_consoleRpc_details">Kizzy מאפשר לך להשתמש בכמה הגדרות קבועות מראש כדי להגדיר את הנוכחות שלך בדיסקורד.</string>
+    <string name="main_consoleRpc_details">Zyro מאפשר לך להשתמש בכמה הגדרות קבועות מראש כדי להגדיר את הנוכחות שלך בדיסקורד.</string>
     <string name="main_experimentalRpc">RPC ניסיוני</string>
-    <string name="main_experimentalRpc_details">RPC ניסיוני הוא תכונה ב-Kizzy שעוברת כל הזמן בין RPC של אפליקציות ל-RPC של מדיה.</string>
-    <string name="main_customRpc_details">Kizzy מאפשרת לך ליצור נוכחות עשירה משלך עבור דיסקורד, הניתנת להתאמה אישית מלאה.</string>
+    <string name="main_experimentalRpc_details">RPC ניסיוני הוא תכונה ב-Zyro שעוברת כל הזמן בין RPC של אפליקציות ל-RPC של מדיה.</string>
+    <string name="main_customRpc_details">Zyro מאפשרת לך ליצור נוכחות עשירה משלך עבור דיסקורד, הניתנת להתאמה אישית מלאה.</string>
     <string name="main_comingSoon">בקרוב</string>
     <string name="exit">יְצִיאָה</string>
     <string name="logs">יומני רישום</string>

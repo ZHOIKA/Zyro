@@ -1,10 +1,10 @@
 plugins {
-    id ("kizzy.android.library")
-    id ("kizzy.android.library.compose")
+    id ("zyro.android.library")
+    id ("zyro.android.library.compose")
 }
 
 android {
-    namespace = "com.my.kizzy.navigation"
+    namespace = "com.my.zyro.navigation"
 }
 
 dependencies {

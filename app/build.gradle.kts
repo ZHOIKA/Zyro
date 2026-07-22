@@ -1,16 +1,16 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-    id("kizzy.android.application")
-    id("kizzy.android.application.compose")
-    id("kizzy.android.hilt")
+    id("zyro.android.application")
+    id("zyro.android.application.compose")
+    id("zyro.android.hilt")
 }
 
 android {
-    namespace = "com.my.kizzy"
+    namespace = "com.my.zyro"
 
     defaultConfig {
-        applicationId = "com.my.kizzy"
+        applicationId = "com.my.zyro"
         versionCode = libs.versions.version.code.get().toInt()
         versionName = libs.versions.version.name.get()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
