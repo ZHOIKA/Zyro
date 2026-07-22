@@ -41,3 +41,4 @@ local.properties
 keystore/
 *.jks
 
+keystore.txt
