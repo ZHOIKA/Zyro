@@ -19,6 +19,11 @@ import androidx.core.view.WindowCompat
 import com.my.zyro.BuildConfig
 import com.my.zyro.domain.model.toVersion
 import com.my.zyro.domain.use_case.check_for_update.CheckForUpdateUseCase
+import com.my.zyro.preference.getLanguageConfig
+import com.my.zyro.ui.theme.LocalDarkTheme
+import com.my.zyro.ui.theme.LocalDynamicColorSwitch
+import com.my.zyro.ui.theme.SettingsProvider
+import com.my.zyro.ui.theme.ZyroTheme
 import com.my.zyro.utils.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
