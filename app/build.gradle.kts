@@ -40,39 +40,71 @@ android {
 
         create("release") {
 
-            val keystoreFile =
+            val keystorePropertiesFile =
                 rootProject.file("keystore.properties")
 
 
-            if (keystoreFile.exists()) {
+            if (!keystorePropertiesFile.exists()) {
 
-                val properties = Properties()
-
-
-                properties.load(
-                    keystoreFile.inputStream()
+                throw GradleException(
+                    "❌ keystore.properties não encontrado"
                 )
-
-
-                storeFile =
-                    file(
-                        properties.getProperty("storeFile")
-                    )
-
-
-                storePassword =
-                    properties.getProperty("storePassword")
-
-
-                keyAlias =
-                    properties.getProperty("keyAlias")
-
-
-                keyPassword =
-                    properties.getProperty("keyPassword")
             }
+
+
+            val properties = Properties()
+
+
+            properties.load(
+                keystorePropertiesFile.inputStream()
+            )
+
+
+            val keystoreName =
+                properties.getProperty("storeFile")
+
+
+            if (keystoreName.isNullOrEmpty()) {
+
+                throw GradleException(
+                    "❌ storeFile não definido"
+                )
+            }
+
+
+
+            storeFile =
+                rootProject.file(keystoreName)
+
+
+            if (!storeFile.exists()) {
+
+                throw GradleException(
+                    "❌ Keystore não encontrado: $storeFile"
+                )
+            }
+
+
+
+            storePassword =
+                properties.getProperty("storePassword")
+
+
+            keyAlias =
+                properties.getProperty("keyAlias")
+
+
+            keyPassword =
+                properties.getProperty("keyPassword")
+
+
+
+            println(
+                "✅ Keystore carregado: $storeFile"
+            )
         }
     }
+
 
 
 
@@ -88,6 +120,7 @@ android {
 
 
         release {
+
 
             signingConfig =
                 signingConfigs.getByName("release")
@@ -112,6 +145,7 @@ android {
 
 
 
+
     packaging {
 
         resources {
@@ -120,6 +154,7 @@ android {
                 "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
 
 
 
@@ -133,12 +168,15 @@ android {
 
 
 
+
+
 dependencies {
 
 
     implementation(projects.domain)
 
     implementation(projects.theme)
+
 
 
     implementation(projects.featureStartup)
@@ -152,6 +190,7 @@ dependencies {
     implementation(projects.featureSettings)
 
     implementation(projects.featureLogs)
+
 
 
     implementation(projects.featureRpcBase)
@@ -176,6 +215,7 @@ dependencies {
 
 
 
+
     // Extras
 
     implementation(libs.app.compat)
@@ -183,6 +223,7 @@ dependencies {
     implementation(libs.accompanist.navigation.animation)
 
     implementation(libs.kotlinx.serialization.json)
+
 
 
 

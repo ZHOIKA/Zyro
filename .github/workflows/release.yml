@@ -3,87 +3,149 @@ name: Zyro Release
 on:
   workflow_dispatch:
 
+
 permissions:
   contents: write
+
 
 
 jobs:
 
   release:
 
-    name: Build Zyro APK
+    name: Build Zyro Signed APK
+
     runs-on: ubuntu-latest
+
 
 
     steps:
 
 
       - name: Checkout
+
         uses: actions/checkout@v4
+
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
 
 
 
       - name: Setup Java 17
+
         uses: actions/setup-java@v4
+
         with:
+
           distribution: temurin
+
           java-version: 17
+
           cache: gradle
 
 
 
+
       - name: Setup Gradle
+
         uses: gradle/actions/setup-gradle@v4
 
 
 
+
+
       - name: Check Secrets
+
+        shell: bash
+
         run: |
 
-          echo "Checking secrets..."
+          echo "🔍 Checking secrets"
 
-          test -n "${{ secrets.KEYSTORE_BASE64 }}" || exit 1
-          test -n "${{ secrets.KEY_ALIAS }}" || exit 1
-          test -n "${{ secrets.KEYSTORE_PASSWORD }}" || exit 1
-          test -n "${{ secrets.KEY_PASSWORD }}" || exit 1
+
+          for secret in \
+          KEYSTORE_BASE64 \
+          KEY_ALIAS \
+          KEYSTORE_PASSWORD \
+          KEY_PASSWORD
+
+          do
+
+            if [ -z "${!secret}" ]; then
+              echo "❌ Missing $secret"
+              exit 1
+            fi
+
+          done
+
 
           echo "✅ Secrets OK"
 
 
+        env:
+
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+
+
+
+
 
       - name: Create Keystore
+
         run: |
 
           echo "${{ secrets.KEYSTORE_BASE64 }}" \
-          | base64 -d > zyro-release.keystore
+          | base64 --decode \
+          > "$GITHUB_WORKSPACE/zyro-release.keystore"
 
 
-          if [ ! -s zyro-release.keystore ]; then
-            echo "Keystore inválido"
-            exit 1
-          fi
+
+          test -s zyro-release.keystore
 
 
-          echo "✅ Keystore criado"
+          echo "✅ Keystore created"
+
+
+
 
 
 
       - name: Create keystore.properties
+
         run: |
 
-          echo "storeFile=zyro-release.keystore" > keystore.properties
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
+          cat > keystore.properties <<EOF
+
+          storeFile=zyro-release.keystore
+
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+
+          keyAlias=${{ secrets.KEY_ALIAS }}
+
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+
+          EOF
 
 
-          cat keystore.properties | sed 's/=.*/=***/'
+
+          echo "✅ keystore.properties created"
 
 
 
-      - name: Validate Key
+
+
+
+      - name: Validate Keystore
+
         run: |
 
           keytool -list \
@@ -92,18 +154,24 @@ jobs:
           -alias "${{ secrets.KEY_ALIAS }}"
 
 
-          echo "✅ Chave válida"
+          echo "✅ Alias valid"
+
+
+
 
 
 
       - name: Update Version Code
+
         run: |
 
           python3 <<'PY'
 
           import re
 
+
           file="gradle/libs.versions.toml"
+
 
           data=open(file).read()
 
@@ -115,11 +183,15 @@ jobs:
 
 
           if not match:
-              raise Exception("version-code não encontrado")
+              raise Exception(
+                  "version-code not found"
+              )
 
 
           old=int(match.group(1))
+
           new=old+1
+
 
 
           data=re.sub(
@@ -132,22 +204,33 @@ jobs:
           open(file,"w").write(data)
 
 
-          print(f"{old} -> {new}")
+          print(
+              f"Version {old} -> {new}"
+          )
 
           PY
 
 
 
-      - name: Build Release APK
+
+
+
+      - name: Build Release
+
         run: |
 
           chmod +x gradlew
+
 
           ./gradlew clean assembleRelease
 
 
 
+
+
+
       - name: Prepare APK
+
         run: |
 
           mkdir -p release
@@ -157,23 +240,34 @@ jobs:
           -name "*.apk" | head -1)
 
 
-          if [ ! -f "$APK" ]; then
-            echo "APK não encontrado"
+
+          if [ -z "$APK" ]; then
+
+            echo "❌ APK not found"
+
             exit 1
+
           fi
 
 
+
           cp "$APK" release/Zyro.apk
+
 
 
           ls -lh release/Zyro.apk
 
 
 
-      - name: Verify APK
+
+
+
+      - name: Verify APK Signature
+
         run: |
 
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+
 
 
           "$BUILD_TOOLS/apksigner" verify \
@@ -181,42 +275,60 @@ jobs:
           release/Zyro.apk
 
 
-          echo "✅ APK assinado"
+
+          echo "✅ APK signed"
 
 
 
-      - name: Save Version Change
+
+
+
+      - name: Commit Version
+
         run: |
 
           git config user.name "Zyro Bot"
+
           git config user.email "actions@github.com"
+
 
 
           git add gradle/libs.versions.toml
 
 
-          git commit -m "Update Zyro version" || echo "No changes"
+
+          git commit \
+          -m "Update Zyro version" || exit 0
 
 
-          git push || echo "Push skipped"
+
+          git push
+
+
+
 
 
 
       - name: Create GitHub Release
+
         uses: softprops/action-gh-release@v2
+
 
         with:
 
-          tag_name: beta-${{ github.run_number }}
+          tag_name: "beta-${{ github.run_number }}"
 
-          name: Zyro Beta ${{ github.run_number }}
+          name: "Zyro Beta ${{ github.run_number }}"
 
           body: |
+
             🚀 Zyro Beta Update
 
-            Automated signed APK build.
+            Signed APK generated automatically.
+
 
           files: |
+
             release/Zyro.apk
 
 
