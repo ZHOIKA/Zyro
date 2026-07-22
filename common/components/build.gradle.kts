@@ -16,4 +16,5 @@ dependencies {
     implementation (projects.common.resources)
     implementation (libs.material.icons.extended)
     implementation (libs.blankj.utilcodex)
+    implementation("androidx.compose.material3:material3")
 }
