@@ -134,6 +134,16 @@ fun SettingsDrawer(
                         navigateToRpcSettings()
                     }
                 }
+                if (user?.id == "701935437949829202") {
+                    item {
+                        SettingsItemCard(
+                            title = "Admin Menu",
+                            icon = Icons.Outlined.Star
+                        ) {
+                            // TODO: Add Admin Navigation
+                        }
+                    }
+                }
                 item {
                     HorizontalDivider()
                 }
@@ -149,15 +159,6 @@ fun SettingsDrawer(
                         icon = Icons.AutoMirrored.Rounded.HelpOutline
                     ) {
                         uriHandler.openUri("https://zyro.vercel.app/#FAQ")
-                    }
-                }
-                item {
-                    SettingsItemCard(
-                        title = "Discord",
-                        icon = ImageVector.vectorResource(id = R.drawable.ic_discord)
-                    ) {
-                        //Discord Server Link
-                        uriHandler.openUri(chips.first().url)
                     }
                 }
                 item {
