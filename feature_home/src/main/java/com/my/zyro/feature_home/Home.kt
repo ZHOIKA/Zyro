@@ -485,6 +485,12 @@ fun Home(
 
                 )
 
+            } else if (
+                state is HomeScreenState.AlreadyUpdated &&
+                showUpdateDialog
+            ) {
+                Toast.makeText(ctx, "Você já está usando a versão mais recente", Toast.LENGTH_SHORT).show()
+                showUpdateDialog = false
             }
 
         }

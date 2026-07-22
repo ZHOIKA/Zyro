@@ -1,0 +1,11 @@
+{
+  "model": {
+    "disableLoopDetection": true,
+    "name": ""
+  },
+  "ui": {
+    "footer": {
+      "hideSandboxStatus": true
+    }
+  }
+}
