@@ -55,9 +55,9 @@ import com.my.zyro.feature_startup.StartUp
 import com.my.zyro.navigation.Routes
 import com.my.zyro.navigation.animatedComposable
 import com.my.zyro.preference.Prefs
-import xyz.ZHOIKA.feature_experimental_rpc.ExperimentalRpcScreen
-import xyz.ZHOIKA.feature_experimental_rpc.ExperimentalRpcViewmodel
-import xyz.ZHOIKA.feature_experimental_rpc.apps.ExperimentalRpcAppsScreen
+import xyz.zyro.feature_experimental_rpc.ExperimentalRpcScreen
+import xyz.zyro.feature_experimental_rpc.ExperimentalRpcViewmodel
+import xyz.zyro.feature_experimental_rpc.apps.ExperimentalRpcAppsScreen
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalAnimationApi::class)

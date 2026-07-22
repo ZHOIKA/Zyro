@@ -10,7 +10,7 @@
  *
  */
 
-package xyz.ZHOIKA.feature_experimental_rpc.apps
+package xyz.zyro.feature_experimental_rpc.apps
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -77,8 +77,8 @@ import com.my.zyro.resources.R
 import com.my.zyro.ui.components.BackButton
 import com.my.zyro.ui.components.KSwitch
 import com.my.zyro.ui.components.SearchBar
-import xyz.ZHOIKA.feature_experimental_rpc.UiEvent
-import xyz.ZHOIKA.feature_experimental_rpc.UiState
+import xyz.zyro.feature_experimental_rpc.UiEvent
+import xyz.zyro.feature_experimental_rpc.UiState
 
 @Composable
 private fun loadAppIcon(packageName: String): ImageBitmap? {

@@ -10,7 +10,7 @@
  *
  */
 
-package xyz.ZHOIKA.feature_experimental_rpc
+package xyz.zyro.feature_experimental_rpc
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

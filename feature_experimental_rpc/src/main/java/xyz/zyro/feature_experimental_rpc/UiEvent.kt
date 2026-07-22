@@ -10,7 +10,7 @@
  *
  */
 
-package xyz.ZHOIKA.feature_experimental_rpc
+package xyz.zyro.feature_experimental_rpc
 
 sealed interface UiEvent {
     data class ToggleAppsRpcPart(val enabled: Boolean) : UiEvent

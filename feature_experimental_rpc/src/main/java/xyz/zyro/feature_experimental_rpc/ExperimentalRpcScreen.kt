@@ -10,7 +10,7 @@
  *
  */
 
-package xyz.ZHOIKA.feature_experimental_rpc
+package xyz.zyro.feature_experimental_rpc
 
 import android.content.Intent
 import android.provider.Settings
