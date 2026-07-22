@@ -11,11 +11,12 @@ jobs:
 
   release:
 
-    name: Build Signed APK
+    name: Build Zyro APK
     runs-on: ubuntu-latest
 
 
     steps:
+
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,30 +42,37 @@ jobs:
       - name: Check Secrets
         run: |
 
-          echo "Verificando secrets..."
+          test -n "${{ secrets.KEYSTORE_BASE64 }}" || exit 1
+          test -n "${{ secrets.KEY_ALIAS }}" || exit 1
+          test -n "${{ secrets.KEYSTORE_PASSWORD }}" || exit 1
+          test -n "${{ secrets.KEY_PASSWORD }}" || exit 1
 
-          if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
-            echo "❌ KEYSTORE_BASE64 faltando"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
-            echo "❌ KEY_ALIAS faltando"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
-            echo "❌ KEYSTORE_PASSWORD faltando"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
-            echo "❌ KEY_PASSWORD faltando"
-            exit 1
-          fi
+          echo "✅ Secrets OK"
 
 
-          echo "✅ Secrets encontrados"
+
+      - name: Import Keystore
+        run: |
+
+          echo "${{ secrets.KEYSTORE_BASE64 }}" \
+          | base64 --decode > zyro-release.keystore
+
+
+          test -s zyro-release.keystore
+
+          echo "✅ Keystore criado"
+
+
+
+      - name: Validate Keystore
+        run: |
+
+          keytool -list \
+          -keystore zyro-release.keystore \
+          -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+          -alias "${{ secrets.KEY_ALIAS }}"
+
+          echo "✅ Chave válida"
 
 
 
@@ -80,18 +88,13 @@ jobs:
           data=open(file).read()
 
 
-          match=re.search(
+          old=re.search(
               r'version-code\s*=\s*"(\d+)"',
               data
-          )
+          ).group(1)
 
 
-          if not match:
-              raise Exception("version-code não encontrado")
-
-
-          old=int(match.group(1))
-          new=old+1
+          new=str(int(old)+1)
 
 
           data=re.sub(
@@ -103,62 +106,38 @@ jobs:
 
           open(file,"w").write(data)
 
-
-          print(f"Version {old} -> {new}")
+          print(old,"->",new)
 
           PY
 
 
 
-      - name: Import Keystore
-        run: |
+      - name: Build Release APK
+        env:
 
-          echo "${{ secrets.KEYSTORE_BASE64 }}" \
-          | base64 --decode > zyro-release.keystore
+          KEYSTORE_FILE: ${{ github.workspace }}/zyro-release.keystore
 
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
-          if [ ! -s zyro-release.keystore ]; then
-            echo "❌ Keystore inválido"
-            exit 1
-          fi
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
 
-
-          echo "✅ Keystore carregado"
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
 
-
-      - name: Validate Keystore
-        run: |
-
-          keytool -list \
-          -keystore zyro-release.keystore \
-          -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-          -alias "${{ secrets.KEY_ALIAS }}"
-
-
-          echo "✅ Alias válido"
-
-
-
-      - name: Clean Project
         run: |
 
           chmod +x gradlew
+
           ./gradlew clean
-
-
-
-      - name: Build Release APK
-        run: |
 
           ./gradlew assembleRelease
 
 
 
-      - name: Sign APK
+      - name: Prepare APK
         run: |
 
-          mkdir -p release
+          mkdir release
 
 
           APK=$(find app/build/outputs/apk/release \
@@ -166,30 +145,23 @@ jobs:
 
 
           if [ ! -f "$APK" ]; then
-            echo "❌ APK não encontrado"
+
+            echo "APK não encontrado"
+
             exit 1
+
           fi
 
 
-          echo "APK encontrado:"
-          ls -lh "$APK"
+          cp "$APK" release/Zyro.apk
+
+
+          echo "APK:"
+          ls -lh release/Zyro.apk
 
 
 
-          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
-
-
-          "$BUILD_TOOLS/apksigner" sign \
-          --ks zyro-release.keystore \
-          --ks-key-alias "${{ secrets.KEY_ALIAS }}" \
-          --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
-          --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
-          --out release/Zyro.apk \
-          "$APK"
-
-
-
-      - name: Verify APK Signature
+      - name: Verify Signature
         run: |
 
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
@@ -200,16 +172,24 @@ jobs:
           release/Zyro.apk
 
 
+          echo "✅ APK assinado"
 
-      - name: Commit Version Update
+
+
+      - name: Commit Version
         run: |
 
           git config user.name "Zyro Bot"
-          git.config user.email "actions@github.com"
+
+          git config user.email "actions@github.com"
+
 
           git add gradle/libs.versions.toml
 
-          git commit -m "Increase version code" || true
+
+          git commit \
+          -m "Increase Zyro version" || true
+
 
           git push || true
 
@@ -225,12 +205,15 @@ jobs:
           name: Zyro Beta v${{ github.run_number }}
 
           body: |
+
             🚀 Zyro Beta Update
 
-            Automatic build from GitHub Actions.
+            Signed APK build.
 
-          files: |
+          files:
+
             release/Zyro.apk
+
 
           generate_release_notes: true
 
