@@ -47,6 +47,7 @@ import com.my.zyro.feature_profile.ui.login.LoginScreen
 import com.my.zyro.feature_profile.ui.user.UserScreen
 import com.my.zyro.feature_profile.ui.user.UserViewModel
 import com.my.zyro.feature_rpc_base.AppUtils
+import com.my.zyro.feature_settings.AdminScreen
 import com.my.zyro.feature_settings.language.Language
 import com.my.zyro.feature_settings.rpc_settings.RpcSettings
 import com.my.zyro.feature_settings.style.Appearance
@@ -143,6 +144,9 @@ internal fun ComponentActivity.Zyro(
                     },
                     navigateToLogsScreen = {
                         navController.navigate(Routes.LOGS_SCREEN)
+                    },
+                    navigateToAdmin = {
+                        navController.navigate(Routes.ADMIN)
                     }
                 )
             }
@@ -225,6 +229,11 @@ internal fun ComponentActivity.Zyro(
             animatedComposable(Routes.LOGS_SCREEN) {
                 val viewModel by viewModels<LogsViewModel>()
                 LogScreen(viewModel)
+            }
+            animatedComposable(Routes.ADMIN) {
+                AdminScreen(
+                    onBackPressed = { navController.popBackStack() }
+                )
             }
             animatedComposable(Routes.ABOUT) {
                 About(

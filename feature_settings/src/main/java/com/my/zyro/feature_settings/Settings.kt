@@ -71,6 +71,7 @@ fun SettingsDrawer(
     navigateToAbout: () -> Unit,
     navigateToRpcSettings: () -> Unit,
     navigateToLogsScreen: () -> Unit,
+    navigateToAdmin: () -> Unit = {},
 ) {
     val uriHandler = LocalUriHandler.current
     Surface(
@@ -140,7 +141,7 @@ fun SettingsDrawer(
                             title = "Admin Menu",
                             icon = Icons.Outlined.Star
                         ) {
-                            // TODO: Add Admin Navigation
+                            navigateToAdmin()
                         }
                     }
                 }

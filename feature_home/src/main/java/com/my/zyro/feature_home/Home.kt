@@ -95,6 +95,7 @@ fun Home(
     navigateToAbout: () -> Unit,
     navigateToRpcSettings: () -> Unit,
     navigateToLogsScreen: () -> Unit,
+    navigateToAdmin: () -> Unit = {},
     updateViewModel: UpdateViewModel = hiltViewModel()
 ) {
 
@@ -201,7 +202,9 @@ fun Home(
                         navigateToRpcSettings,
 
                     navigateToLogsScreen =
-                        navigateToLogsScreen
+                        navigateToLogsScreen,
+                    navigateToAdmin =
+                        navigateToAdmin
 
                 )
 

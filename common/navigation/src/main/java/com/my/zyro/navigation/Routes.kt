@@ -45,6 +45,9 @@ class Routes {
         /* Logs Screen */
         const val LOGS_SCREEN= "logs_screen"
 
+        /* Admin Screen */
+        const val ADMIN = "admin"
+
         /* About Screen */
         const val ABOUT = "about"
         const val CREDITS = "credits"
