@@ -46,11 +46,11 @@ jobs:
           gradle-version: wrapper
 
       - name: Build Release
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         run: |
           # Força o Gradle a usar diretórios locais para build e cache
-          ./gradlew clean assembleRelease --stacktrace --debug --no-build-cache -Dorg.gradle.parallel=false -Dorg.gradle.user.home=$PWD/.gradle_user_home > build_log.txt 2>&1
-
-
+          ./gradlew clean assembleRelease --stacktrace --debug --no-build-cache -Dorg.gradle.parallel=false -Dorg.gradle.user.home=$PWD/.gradle_user_home
 
 
 
