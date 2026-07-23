@@ -28,10 +28,10 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extreme Clean
+      - name: Surgical Clean
         run: |
-          find . -maxdepth 1 -not -name '.' -not -name '.git' -exec rm -rf {} +
-          ls -la
+          find . -name "build" -type d -exec rm -rf {} +
+          chmod -R 777 .
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -47,8 +47,6 @@ jobs:
 
       - name: Build Release
         run: |
-          # Garante permissões totais no workspace
-          chmod -R 777 .
           # Força o Gradle a usar diretórios locais para build e cache
           ./gradlew clean assembleRelease --stacktrace --debug --no-build-cache -Dorg.gradle.parallel=false -Dorg.gradle.user.home=$PWD/.gradle_user_home > build_log.txt 2>&1
 
