@@ -10,6 +10,7 @@
 package com.my.zyro.data.repository
 
 import com.my.zyro.data.remote.ApiService
+import com.my.zyro.data.remote.GamesData
 import com.my.zyro.data.remote.GamesResponse
 import com.my.zyro.data.remote.ImgurApiService
 import com.my.zyro.data.remote.toGame
@@ -98,7 +99,10 @@ class ZyroRepositoryImpl @Inject constructor(
             ?.map {
                 it.toGame()
             }
-            ?: emptyList()
+            ?.ifEmpty {
+                GamesData.games
+            }
+            ?: GamesData.games
 
     }
 
@@ -165,3 +169,4 @@ suspend fun HttpResponse.releaseBody(): Release {
     }
 
 }
+
