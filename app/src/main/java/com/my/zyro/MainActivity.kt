@@ -29,7 +29,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,11 +49,12 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(0, 0, 0, 0)
             insets
         }
-        runBlocking {
-            if (Build.VERSION.SDK_INT < 33)
-                AppCompatDelegate.setApplicationLocales(
-                    LocaleListCompat.forLanguageTags(getLanguageConfig())
-                )
+        
+        // Set locale on main thread (non-blocking operation)
+        if (Build.VERSION.SDK_INT < 33) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(getLanguageConfig())
+            )
         }
 
         CoroutineScope(Dispatchers.IO).launch {

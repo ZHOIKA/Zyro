@@ -13,10 +13,15 @@ class App: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        DynamicColors.applyToActivitiesIfAvailable(this)
-        CrashHandlerConfig.apply()
-        PreferenceConfig.apply(this)
-        LoggerProvider.init()
-        AppUtils.init(this)
+        try {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+            CrashHandlerConfig.apply()
+            PreferenceConfig.apply(this)
+            LoggerProvider.init()
+            AppUtils.init(this)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Log initialization error but continue to prevent crash
+        }
     }
 }

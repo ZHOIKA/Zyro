@@ -5,8 +5,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.my.zyro.MainActivity
 import com.my.zyro.R
 
@@ -36,13 +38,24 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_round) // Usando ic_launcher_round
+            .setSmallIcon(R.mipmap.ic_launcher_round)
             .setContentTitle("Nova atualização disponível")
             .setContentText("Uma nova versão do Zyro está pronta para ser instalada.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        notificationManager.notify(NOTIFICATION_ID, builder.build())
+        // Check POST_NOTIFICATIONS permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationManager.notify(NOTIFICATION_ID, builder.build())
+            }
+        } else {
+            notificationManager.notify(NOTIFICATION_ID, builder.build())
+        }
     }
 }
