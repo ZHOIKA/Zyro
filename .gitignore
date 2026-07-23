@@ -45,3 +45,5 @@ keystore/
 *.jks
 
 keystore.txt
+keystore.properties
+

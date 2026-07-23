@@ -3,25 +3,15 @@ name: Zyro Release
 on:
   workflow_dispatch:
 
-
 permissions:
   contents: write
 
-
-
 jobs:
-
   release:
-
     name: Build Zyro Signed APK
-
     runs-on: ubuntu-latest
 
-
-
     steps:
-
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -45,120 +35,60 @@ jobs:
         with:
           gradle-version: wrapper
 
+      - name: Create debug keystore for CI
+        run: |
+          if [ ! -f keystore.properties ]; then
+            keytool -genkey -v -keystore debug.keystore -alias debug \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass android -keypass android \
+              -dname "CN=Zyro CI, OU=CI, O=Zyro, L=Unknown, ST=Unknown, C=US"
+            echo "storeFile=debug.keystore" > keystore.properties
+            echo "storePassword=android" >> keystore.properties
+            echo "keyAlias=debug" >> keystore.properties
+            echo "keyPassword=android" >> keystore.properties
+          fi
+
       - name: Build Release
         env:
           ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
         run: |
-          # Força o Gradle a usar diretórios locais para build e cache
-          ./gradlew clean assembleRelease --stacktrace --debug --no-build-cache -Dorg.gradle.parallel=false -Dorg.gradle.user.home=$PWD/.gradle_user_home
-
-
-
-
+          ./gradlew clean assembleRelease
 
       - name: Prepare APK
-
         run: |
-
           mkdir -p release
-
-
-          APK=$(find app/build/outputs/apk/release \
-          -name "*.apk" | head -1)
-
-
-
+          APK=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
           if [ -z "$APK" ]; then
-
-            echo "❌ APK not found"
-
+            echo "APK not found"
             exit 1
-
           fi
-
-
-
           cp "$APK" release/Zyro.apk
-
-
-
           ls -lh release/Zyro.apk
 
-
-
-
-
-
       - name: Verify APK Signature
-
         run: |
-
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
-
-
-
-          "$BUILD_TOOLS/apksigner" verify \
-          --verbose \
-          release/Zyro.apk
-
-
-
-          echo "✅ APK signed"
-
-
-
-
-
+          "$BUILD_TOOLS/apksigner" verify --verbose release/Zyro.apk
+          echo "APK signed"
 
       - name: Commit Version
-
         run: |
-
           git config user.name "Zyro Bot"
-
           git config user.email "actions@github.com"
-
-
-
           git add gradle/libs.versions.toml
-
-
-
-          git commit \
-          -m "Update Zyro version" || exit 0
-
-
-
+          git commit -m "Update Zyro version" || exit 0
           git push
 
-
-
-
-
-
       - name: Create GitHub Release
-
         uses: softprops/action-gh-release@v2
-
-
         with:
-
           tag_name: "beta-${{ github.run_number }}"
-
           name: "Zyro Beta ${{ github.run_number }}"
-
           body: |
-
-            🚀 Zyro Beta Update
-
+            Zyro Beta Update
             Signed APK generated automatically.
-
-
           files: |
-
             release/Zyro.apk
-
-
         env:
-
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
