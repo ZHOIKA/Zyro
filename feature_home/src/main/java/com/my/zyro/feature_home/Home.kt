@@ -77,6 +77,7 @@ import com.my.zyro.feature_settings.SettingsDrawer
 import com.my.zyro.resources.R
 
 import com.my.zyro.ui.components.ChipSection
+import com.my.zyro.ui.components.ParticleEffect
 import com.my.zyro.ui.components.UpdateDialog
 
 import kotlinx.coroutines.launch
@@ -213,6 +214,11 @@ fun Home(
         }
 
     ) {
+
+        ParticleEffect(
+            modifier = Modifier
+                .fillMaxSize()
+        )
 
         Scaffold(
 
@@ -543,3 +549,4 @@ fun OnLifecycleEvent(
     }
 
 }
+

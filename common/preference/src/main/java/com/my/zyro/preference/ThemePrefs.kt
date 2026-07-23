@@ -24,12 +24,12 @@ import kotlinx.coroutines.launch
 import com.my.zyro.resources.R
 
 // TODO get seed color from colorscheme.kt
-const val DEFAULT_SEED_COLOR =  0xFFAF92F1.toInt()
+const val DEFAULT_SEED_COLOR =  0xFFBB00FF.toInt()
 data class AppSettings(
     val darkTheme: DarkThemePreference = DarkThemePreference(),
     val isDynamicColorEnabled: Boolean = false,
     val seedColor: Int = DEFAULT_SEED_COLOR,
-    val paletteStyleIndex: Int = 0
+    val paletteStyleIndex: Int = 3
 )
 val palettesMap = mapOf(
     0 to PaletteStyle.TonalSpot,
@@ -46,7 +46,7 @@ private val mutableAppSettingsStateFlow = MutableStateFlow(
         ),
         isDynamicColorEnabled = Prefs[Prefs.DYNAMIC_COLOR, false],
         seedColor = Prefs[Prefs.THEME_COLOR, DEFAULT_SEED_COLOR],
-        paletteStyleIndex = Prefs[Prefs.PALETTE_STYLE, 0]
+        paletteStyleIndex = Prefs[Prefs.PALETTE_STYLE, 3]
     )
 )
 val AppSettingsStateFlow = mutableAppSettingsStateFlow.asStateFlow()
@@ -114,3 +114,5 @@ data class DarkThemePreference(
         }
     }
 }
+
+
