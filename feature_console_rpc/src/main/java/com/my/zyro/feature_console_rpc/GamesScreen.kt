@@ -45,6 +45,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -93,7 +94,16 @@ fun GamesScreen(
     }
     var searchText by remember { mutableStateOf("") }
 
-    val intent = Intent(context, CustomRpcService::class.java)
+    val intent = remember { Intent(context, CustomRpcService::class.java) }
+
+    val savedRpc = remember {
+        Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
+    }
+    LaunchedEffect(savedRpc) {
+        if (savedRpc.isNotEmpty() && !intent.hasExtra("RPC")) {
+            intent.putExtra("RPC", savedRpc)
+        }
+    }
     Scaffold(
         Modifier.fillMaxSize(),
         topBar = {
@@ -176,9 +186,12 @@ fun GamesScreen(
                             isConsoleRpcRunning = !isConsoleRpcRunning
                             when (isConsoleRpcRunning) {
                                 true -> {
-                                    if (intent.hasExtra("RPC")) {
-                                        Prefs[Prefs.LAST_RUN_CONSOLE_RPC] =
-                                            intent.getStringExtra("RPC")
+                                    val rpcString = intent.getStringExtra("RPC")
+                                        ?: Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
+                                    if (rpcString.isNotEmpty()) {
+                                        Prefs[Prefs.LAST_RUN_CONSOLE_RPC] = rpcString
+                                        intent.removeExtra("RPC")
+                                        intent.putExtra("RPC", rpcString)
                                         context.stopService(
                                             Intent(
                                                 context,
@@ -399,3 +412,5 @@ fun GamesScreenPreview6() {
         serviceEnabled = true
     )
 }
+
+
