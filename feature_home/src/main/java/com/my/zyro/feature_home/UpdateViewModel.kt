@@ -7,6 +7,7 @@ import com.my.zyro.domain.model.release.Release
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -21,6 +22,11 @@ sealed class UpdateState {
     ) : UpdateState()
 
     data class Ready(
+        val file: File,
+        val release: Release
+    ) : UpdateState()
+
+    data class Installing(
         val file: File
     ) : UpdateState()
 
@@ -45,6 +51,7 @@ class UpdateViewModel @Inject constructor(
     val state =
         _state.asStateFlow()
 
+    private var downloadJob: Job? = null
 
 
     fun downloadAndInstall(
@@ -73,7 +80,7 @@ class UpdateViewModel @Inject constructor(
 
             _state.value =
                 UpdateState.Error(
-                    "Nenhum APK encontrado"
+                    "Nenhum APK encontrado para download"
                 )
 
             return
@@ -81,16 +88,12 @@ class UpdateViewModel @Inject constructor(
         }
 
 
-
-        viewModelScope.launch {
+        downloadJob = viewModelScope.launch {
 
             try {
 
                 _state.value =
-                    UpdateState.Downloading(
-                        0
-                    )
-
+                    UpdateState.Downloading(0)
 
 
                 val apkFile =
@@ -106,27 +109,24 @@ class UpdateViewModel @Inject constructor(
                     }
 
 
-
                 _state.value =
                     UpdateState.Ready(
-                        apkFile
+                        apkFile,
+                        release
                     )
 
 
+            } catch (e: kotlinx.coroutines.CancellationException) {
 
-                updateManager.installApk(
-                    apkFile
-                )
-
-
+                _state.value =
+                    UpdateState.Idle
 
             } catch (e: Exception) {
-
 
                 _state.value =
                     UpdateState.Error(
                         e.localizedMessage
-                            ?: "Falha ao atualizar"
+                            ?: "Falha ao baixar atualização"
                     )
 
             }
@@ -135,4 +135,34 @@ class UpdateViewModel @Inject constructor(
 
     }
 
+
+    fun cancelDownload() {
+        downloadJob?.cancel()
+        downloadJob = null
+        _state.value = UpdateState.Idle
+    }
+
+
+    fun install() {
+        val currentState = _state.value
+        if (currentState !is UpdateState.Ready) return
+
+        try {
+            _state.value = UpdateState.Installing(currentState.file)
+            updateManager.installApk(currentState.file)
+        } catch (e: Exception) {
+            _state.value = UpdateState.Error(
+                e.localizedMessage ?: "Falha ao instalar APK"
+            )
+        }
+    }
+
+
+    fun resetState() {
+        downloadJob?.cancel()
+        downloadJob = null
+        _state.value = UpdateState.Idle
+    }
+
 }
+

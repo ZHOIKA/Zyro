@@ -450,56 +450,67 @@ fun Home(
             }
 
 
-            if (
-                state is HomeScreenState.LoadingCompleted &&
-                showUpdateDialog
-            ) {
+            val updateState = updateViewModel.state.value
 
-                UpdateDialog(
+            if (showUpdateDialog) {
 
-                    newVersionPublishDate =
-                        state.release.publishedAt ?: "",
+                val release = (state as? HomeScreenState.LoadingCompleted)?.release
 
-                    newVersionSize =
-                        state.release.assets
-                            ?.firstOrNull()
-                            ?.size ?: 0,
+                if (state is HomeScreenState.LoadingCompleted && release != null) {
 
-                    newVersionLog =
-                        state.release.body ?: "",
+                    UpdateDialog(
 
-                    isDownloading =
-                        updateViewModel.state.value
-                            is UpdateState.Downloading,
+                        tagName = release.tagName,
 
-                    downloadProgress =
-                        (
-                            updateViewModel.state.value
-                                as? UpdateState.Downloading
-                        )?.progress,
+                        newVersionPublishDate =
+                            release.publishedAt ?: "",
 
-                    onUpdateNow = {
+                        newVersionSize =
+                            release.assets
+                                ?.firstOrNull()
+                                ?.size ?: 0,
 
-                        updateViewModel.downloadAndInstall(
-                            state.release
-                        )
+                        newVersionLog =
+                            release.body ?: "",
 
-                    },
+                        isDownloading =
+                            updateState is UpdateState.Downloading,
 
-                    onDismissRequest = {
+                        downloadProgress =
+                            (updateState as? UpdateState.Downloading)?.progress,
 
-                        showUpdateDialog = false
+                        isReady =
+                            updateState is UpdateState.Ready,
 
-                    }
+                        isInstalling =
+                            updateState is UpdateState.Installing,
 
-                )
+                        errorMessage =
+                            (updateState as? UpdateState.Error)?.message,
 
-            } else if (
-                state is HomeScreenState.AlreadyUpdated &&
-                showUpdateDialog
-            ) {
-                Toast.makeText(ctx, "Você já está usando a versão mais recente", Toast.LENGTH_SHORT).show()
-                showUpdateDialog = false
+                        onUpdateNow = {
+                            updateViewModel.downloadAndInstall(release)
+                        },
+
+                        onInstallNow = {
+                            updateViewModel.install()
+                        },
+
+                        onCancelDownload = {
+                            updateViewModel.cancelDownload()
+                        },
+
+                        onDismissRequest = {
+                            showUpdateDialog = false
+                            updateViewModel.resetState()
+                        }
+
+                    )
+
+                } else if (state is HomeScreenState.AlreadyUpdated) {
+                    Toast.makeText(ctx, "Você já está usando a versão mais recente", Toast.LENGTH_SHORT).show()
+                    showUpdateDialog = false
+                }
             }
 
         }
@@ -549,4 +560,5 @@ fun OnLifecycleEvent(
     }
 
 }
+
 
