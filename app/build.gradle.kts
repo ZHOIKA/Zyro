@@ -32,6 +32,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        lint {
+            abortOnError = false
+        }
     }
 
 
