@@ -197,13 +197,9 @@ jobs:
 
 
       - name: Build Release
-
         run: |
-
           chmod +x gradlew
-
-
-          ./gradlew clean assembleRelease
+          ./gradlew clean assembleRelease --stacktrace --info
 
 
 

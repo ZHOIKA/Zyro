@@ -129,9 +129,9 @@ android {
                 signingConfigs.getByName("release")
 
 
-            isMinifyEnabled = true
+            isMinifyEnabled = false
 
-            isShrinkResources = true
+            isShrinkResources = false
 
 
 
