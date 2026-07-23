@@ -38,7 +38,7 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Nova atualização disponível")
             .setContentText("Uma nova versão do Zyro está pronta para ser instalada.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -59,3 +59,4 @@ object NotificationHelper {
         }
     }
 }
+
