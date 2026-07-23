@@ -198,8 +198,15 @@ jobs:
 
       - name: Build Release
         run: |
-          chmod +x gradlew
-          ./gradlew clean assembleRelease --stacktrace --info
+          chmod -R 777 .
+          ./gradlew clean assembleRelease --stacktrace --debug --no-build-cache -Dorg.gradle.parallel=false > build_log.txt 2>&1
+
+      - name: Upload Build Log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build_log.txt
 
 
 
