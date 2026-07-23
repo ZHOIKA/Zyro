@@ -55,9 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import com.my.zyro.preference.Prefs
 import com.my.zyro.preference.getLanguageDesc
 import com.my.zyro.preference.languages
@@ -75,9 +72,6 @@ fun StartUp(
 ) {
     val user = Prefs.getUser()
     val context = LocalContext.current
-    val storagePermissionState = rememberPermissionState(
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
     var notificationPostingPerm by remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mutableStateOf(
@@ -183,21 +177,6 @@ fun StartUp(
                             launcher.launch(POST_NOTIFICATIONS)
                         }
                     }
-                } else {
-                    item {
-                        SetupCard(
-                            title = stringResource(id = R.string.storage_access),
-                            description = stringResource(id = R.string.request_for_storage_access),
-                            status = storagePermissionState.status.isGranted
-                        ) {
-                            when (storagePermissionState.status) {
-                                PermissionStatus.Granted -> {}
-                                is PermissionStatus.Denied -> {
-                                    storagePermissionState.launchPermissionRequest()
-                                }
-                            }
-                        }
-                    }
                 }
 
                 item {
@@ -235,7 +214,7 @@ fun StartUp(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = { navigateToHome() }, enabled = notificationPostingPerm && usageAccessStatus.value || mediaControlStatus.value) {
+                TextButton(onClick = { navigateToHome() }, enabled = usageAccessStatus.value && mediaControlStatus.value) {
                     val text =
                         if (usageAccessStatus.value && mediaControlStatus.value) stringResource(R.string.start_app_now) else stringResource(R.string.skip)
                     val style =

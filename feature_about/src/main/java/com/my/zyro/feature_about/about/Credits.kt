@@ -54,7 +54,7 @@ import com.my.zyro.resources.R
 import com.my.zyro.ui.components.BackButton
 import com.my.zyro.ui.components.CreditItem
 import com.my.zyro.ui.components.Subtitle
-import kotlin.math.floor
+import kotlin.math.ceil
 
 data class Credit(val title: String = "", val license: String = "", val url: String = "")
 
@@ -139,14 +139,13 @@ fun Credits(state: CreditScreenState, onBackPressed: () -> Unit) {
                     }
 
                     is CreditScreenState.LoadingCompleted -> {
-                        // dirty way to enable LazyVerticalGird,
-                        // TODO update this part once compose team release out a better
-                        //  implementation of nested scrolling
-                        val itemsPerRowAccordingToScreenWidth =
-                            kotlin.math.max(1.0, floor((LocalConfiguration.current.screenWidthDp.dp / 90).value))
-                        val totalHeightForLazyGrid =
-                            state.contributors.size.div(itemsPerRowAccordingToScreenWidth)
-                                .times((96)).dp
+                        val itemsPerRow = kotlin.math.max(
+                            1,
+                            (LocalConfiguration.current.screenWidthDp / 90).toInt()
+                        )
+                        val rowCount = ceil(state.contributors.size.toDouble() / itemsPerRow).toInt()
+                        val totalHeightForLazyGrid = (rowCount * 100).dp
+                        
                         LazyVerticalGrid(
                             columns = GridCells.Adaptive(90.dp),
                             modifier = Modifier.height(totalHeightForLazyGrid)

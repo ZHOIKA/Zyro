@@ -12,6 +12,7 @@
 
 package com.my.zyro.feature_about.about
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.my.zyro.domain.model.Resource
@@ -33,16 +34,21 @@ class CreditsScreenViewModel @Inject constructor(
     init {
         getContributors()
     }
+    
     private fun getContributors() {
         getContributorsUseCase().onEach { result ->
             when(result){
                 is Resource.Success -> {
+                    Log.d("CreditsScreenViewModel", "Contributors loaded successfully: ${result.data?.size ?: 0} items")
                     _creditScreenState.value = CreditScreenState.LoadingCompleted(result.data?: emptyList())
                 }
                 is Resource.Error -> {
-                    _creditScreenState.value = CreditScreenState.Error(result.message?: "An unexpected error occurred")
+                    val errorMsg = result.message?: "An unexpected error occurred"
+                    Log.e("CreditsScreenViewModel", "Error loading contributors: $errorMsg")
+                    _creditScreenState.value = CreditScreenState.Error(errorMsg)
                 }
                 is Resource.Loading -> {
+                    Log.d("CreditsScreenViewModel", "Loading contributors...")
                     _creditScreenState.value = CreditScreenState.Loading
                 }
             }
