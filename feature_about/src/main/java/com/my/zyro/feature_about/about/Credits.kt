@@ -143,7 +143,7 @@ fun Credits(state: CreditScreenState, onBackPressed: () -> Unit) {
                         // TODO update this part once compose team release out a better
                         //  implementation of nested scrolling
                         val itemsPerRowAccordingToScreenWidth =
-                            floor((LocalConfiguration.current.screenWidthDp.dp / 90).value)
+                            kotlin.math.max(1.0, floor((LocalConfiguration.current.screenWidthDp.dp / 90).value))
                         val totalHeightForLazyGrid =
                             state.contributors.size.div(itemsPerRowAccordingToScreenWidth)
                                 .times((96)).dp

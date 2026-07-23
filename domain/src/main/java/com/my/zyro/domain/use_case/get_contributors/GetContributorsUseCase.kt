@@ -28,6 +28,8 @@ class GetContributorsUseCase @Inject constructor(
             emit(Resource.Loading())
             val contributors = zyroRepository.getContributors()
             emit(Resource.Success(contributors))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
         } catch (e: Exception) {

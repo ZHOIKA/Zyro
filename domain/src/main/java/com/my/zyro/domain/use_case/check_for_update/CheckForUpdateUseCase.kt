@@ -27,6 +27,8 @@ class CheckForUpdateUseCase @Inject constructor(
             emit(Resource.Loading())
             val release = repository.checkForUpdate()
             emit(Resource.Success(release))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
         }

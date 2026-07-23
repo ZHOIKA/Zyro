@@ -30,10 +30,10 @@ class LogsViewModel: ViewModel() {
 
     fun filter(): List<LogEvent> {
         return try {
-            val currentLogsSnapshot = logs.toList()
+            val currentLogsSnapshot = synchronized(logs) { logs.toList() }
             currentLogsSnapshot.matches(filterStrings.value)
-        } catch (_: ConcurrentModificationException){
-            logs.toList()
+        } catch (_: ConcurrentModificationException) {
+            emptyList()
         }
     }
 

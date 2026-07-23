@@ -40,107 +40,42 @@ android {
 
 
     signingConfigs {
-
-        create("release") {
-
-            val propertiesFile =
-                rootProject.file("keystore.properties")
-
-
-            if (!propertiesFile.exists()) {
-
-                throw GradleException(
-                    "❌ keystore.properties não encontrado"
-                )
+        val propertiesFile = rootProject.file("keystore.properties")
+        if (propertiesFile.exists()) {
+            create("release") {
+                val props = Properties()
+                props.load(propertiesFile.inputStream())
+                val keystorePath = props.getProperty("storeFile")
+                if (!keystorePath.isNullOrBlank()) {
+                    val releaseKeystore = rootProject.file(keystorePath)
+                    if (releaseKeystore.exists()) {
+                        storeFile = releaseKeystore
+                        storePassword = props.getProperty("storePassword")
+                        keyAlias = props.getProperty("keyAlias")
+                        keyPassword = props.getProperty("keyPassword")
+                        println("✅ Release keystore: $releaseKeystore")
+                    }
+                }
             }
-
-
-            val props = Properties()
-
-
-            props.load(
-                propertiesFile.inputStream()
-            )
-
-
-            val keystorePath =
-                props.getProperty("storeFile")
-
-
-            if (keystorePath.isNullOrBlank()) {
-
-                throw GradleException(
-                    "❌ storeFile não configurado"
-                )
-            }
-
-
-            val releaseKeystore =
-                rootProject.file(keystorePath)
-
-
-            if (!releaseKeystore.exists()) {
-
-                throw GradleException(
-                    "❌ Arquivo keystore não encontrado: $releaseKeystore"
-                )
-            }
-
-
-            storeFile = releaseKeystore
-
-
-            storePassword =
-                props.getProperty("storePassword")
-
-
-            keyAlias =
-                props.getProperty("keyAlias")
-
-
-            keyPassword =
-                props.getProperty("keyPassword")
-
-
-            println(
-                "✅ Release keystore: $releaseKeystore"
-            )
         }
     }
 
-
-
-
-
     buildTypes {
-
-
         debug {
-
             applicationIdSuffix = ".debug"
         }
 
-
-
         release {
-
-
-            signingConfig =
-                signingConfigs.getByName("release")
-
-
+            signingConfigs.findByName("release")?.let {
+                signingConfig = it
+            }
             isMinifyEnabled = false
-
             isShrinkResources = false
 
-
-
             proguardFiles(
-
                 getDefaultProguardFile(
                     "proguard-android-optimize.txt"
                 ),
-
                 "proguard-rules.pro"
             )
         }

@@ -28,6 +28,8 @@ class GetUserUseCase @Inject constructor(
             emit(Resource.Loading())
             val user = zyroRepository.getUser(userid)
             emit(Resource.Success(user))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
         } catch (e: Exception) {

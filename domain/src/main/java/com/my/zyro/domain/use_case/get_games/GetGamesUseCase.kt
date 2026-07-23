@@ -28,6 +28,8 @@ class GetGamesUseCase @Inject constructor(
             emit(Resource.Loading())
             val games = zyroRepository.getGames()
             emit(Resource.Success(games))
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection."))
         } catch (e: Exception) {

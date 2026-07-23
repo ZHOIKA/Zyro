@@ -66,6 +66,7 @@ open class DiscordWebSocketImpl(
                     }
                 handleClose()
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 logger.e("Gateway",e.message?:"")
                 close()
             }
