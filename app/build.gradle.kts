@@ -34,6 +34,7 @@ android {
         }
         lint {
             abortOnError = false
+            ignoreWarnings = false
         }
     }
 
@@ -63,14 +64,16 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
+            isDebuggable = true
         }
 
         release {
             signingConfigs.findByName("release")?.let {
                 signingConfig = it
             }
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
 
             proguardFiles(
                 getDefaultProguardFile(
@@ -88,8 +91,7 @@ android {
 
         resources {
 
-            excludes +=
-                "/META-INF/{AL2.0,LGPL2.1}"
+            excludes +="/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 

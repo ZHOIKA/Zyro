@@ -1,6 +1,7 @@
 package com.my.zyro
 
 import android.app.Application
+import android.util.Log
 import com.google.android.material.color.DynamicColors
 import com.my.zyro.feature_crash_handler.CrashHandlerConfig
 import com.my.zyro.feature_logs.LoggerProvider
@@ -19,9 +20,10 @@ class App: Application() {
             PreferenceConfig.apply(this)
             LoggerProvider.init()
             AppUtils.init(this)
+            Log.d("App", "Application initialized successfully")
         } catch (e: Exception) {
-            e.printStackTrace()
-            // Log initialization error but continue to prevent crash
+            Log.e("App", "Error during application initialization", e)
+            // Continue execution to prevent crash
         }
     }
 }
