@@ -34,7 +34,6 @@ android {
         }
         lint {
             abortOnError = false
-            ignoreWarnings = false
         }
     }
 
@@ -54,7 +53,7 @@ android {
                         storePassword = props.getProperty("storePassword")
                         keyAlias = props.getProperty("keyAlias")
                         keyPassword = props.getProperty("keyPassword")
-                        println("✅ Release keystore: $releaseKeystore")
+                        println("Release keystore: $releaseKeystore")
                     }
                 }
             }
