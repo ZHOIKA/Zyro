@@ -100,42 +100,23 @@ jobs:
 
 
       - name: Create Keystore
-
         run: |
-
           echo "${{ secrets.KEYSTORE_BASE64 }}" \
           | base64 --decode \
           > "$GITHUB_WORKSPACE/zyro-release.keystore"
 
-
-
-          test -s zyro-release.keystore
-
-
-          echo "✅ Keystore created"
-
-
-
-
-
+          ls -l "$GITHUB_WORKSPACE/zyro-release.keystore"
+          test -s "$GITHUB_WORKSPACE/zyro-release.keystore"
+          echo "✅ Keystore created at $GITHUB_WORKSPACE/zyro-release.keystore"
 
       - name: Create keystore.properties
-
         run: |
-
           cat > keystore.properties <<EOF
-
           storeFile=zyro-release.keystore
-
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-
           keyAlias=${{ secrets.KEY_ALIAS }}
-
           keyPassword=${{ secrets.KEY_PASSWORD }}
-
           EOF
-
-
 
           echo "✅ keystore.properties created"
 
