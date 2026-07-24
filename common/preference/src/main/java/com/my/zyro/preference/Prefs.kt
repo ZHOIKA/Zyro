@@ -22,7 +22,8 @@ import kotlin.time.Duration.Companion.hours
  * Reimplemented from scratch with independent key naming and logic
  */
 object Prefs {
-    private val kv = MMKV.defaultMMKV()
+    @PublishedApi
+    internal val kv = MMKV.defaultMMKV()
     
     // ============== Generic Key-Value Operations ==============
     

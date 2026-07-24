@@ -308,6 +308,7 @@ open class DiscordWebSocketImpl(
      * Checks if WebSocket session is active
      */
     @OptIn(ExperimentalCoroutinesApi::class)
+    @Suppress("DELICATE_API")
     override fun isWebSocketConnected(): Boolean {
         return wsSession?.incoming != null && wsSession?.outgoing?.isClosedForSend == false
     }
