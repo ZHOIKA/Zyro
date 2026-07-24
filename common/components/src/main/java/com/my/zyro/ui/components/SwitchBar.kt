@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.my.zyro.ui.theme.getColorScheme
+import com.my.zyro.ui.theme.getZyroColorScheme
 
 @Composable
 fun SwitchBar(
@@ -33,7 +33,7 @@ fun SwitchBar(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    val colorScheme = getColorScheme(darkTheme = false)
+    val colorScheme = getZyroColorScheme(darkTheme = false)
     Row(
         modifier = Modifier
             .fillMaxWidth()
