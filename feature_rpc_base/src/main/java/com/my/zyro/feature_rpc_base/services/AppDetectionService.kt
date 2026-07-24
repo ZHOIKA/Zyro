@@ -169,6 +169,7 @@ class AppDetectionService : Service() {
     private suspend fun handleEnabledPackage(packageName: String, rpcButtons: RpcButtons) {
         if (!zyroRPC.isRpcRunning()) {
             zyroRPC.apply {
+                resetState()
                 setName(AppUtils.getAppName(packageName))
                 setStartTimestamps(System.currentTimeMillis())
                 setStatus(Prefs[Prefs.CUSTOM_ACTIVITY_STATUS, "dnd"])

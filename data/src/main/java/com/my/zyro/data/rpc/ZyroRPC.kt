@@ -46,16 +46,36 @@ class ZyroRPC(
     private var stopTimestamps: Long? = null
     private var type: Int = 0
     private var platform: String? = null
-    private var buttons = ArrayList<String>()
-    private var buttonUrl = ArrayList<String>()
+    private var buttons = ArrayList<String?>()
+    private var buttonUrl = ArrayList<String?>()
     private var url: String? = null
 
     fun closeRPC() {
         discordWebSocket.close()
+        resetState()
     }
 
     fun isRpcRunning(): Boolean {
         return discordWebSocket.isWebSocketConnected()
+    }
+
+    fun resetState() {
+        activityName = null
+        details = null
+        state = null
+        party = null
+        largeImage = null
+        smallImage = null
+        largeText = null
+        smallText = null
+        status = null
+        startTimestamps = null
+        stopTimestamps = null
+        type = 0
+        platform = null
+        buttons.clear()
+        buttonUrl.clear()
+        url = null
     }
 
     /**
@@ -210,13 +230,27 @@ class ZyroRPC(
         return this
     }
 
+    private fun setIndexedField(target: ArrayList<String?>, index: Int, value: String?) {
+        if (value.isNullOrBlank()) {
+            if (target.size > index) target[index] = null
+            return
+        }
+
+        while (target.size <= index) {
+            target.add(null)
+        }
+        target[index] = value
+    }
+
+    private fun ArrayList<String?>.cleanUp(): List<String?> = this.filterNotNull().filter { it.isNotBlank() }
+
     /**
      * Button1 text
      * @param button1_Text
      * @return
      */
     fun setButton1(button1_Text: String?): ZyroRPC {
-        button1_Text?.let { buttons.add(it) }
+        setIndexedField(buttons, 0, button1_Text)
         return this
     }
 
@@ -226,7 +260,7 @@ class ZyroRPC(
      * @return
      */
     fun setButton2(button2_text: String?): ZyroRPC {
-        button2_text?.let { buttons.add(it) }
+        setIndexedField(buttons, 1, button2_text)
         return this
     }
 
@@ -236,7 +270,7 @@ class ZyroRPC(
      * @return
      */
     fun setButton1URL(url: String?): ZyroRPC {
-        url?.let { buttonUrl.add(it) }
+        setIndexedField(buttonUrl, 0, url)
         return this
     }
 
@@ -246,7 +280,7 @@ class ZyroRPC(
      * @return
      */
     fun setButton2URL(url: String?): ZyroRPC {
-        url?.let { buttonUrl.add(it) }
+        setIndexedField(buttonUrl, 1, url)
         return this
     }
     /**
@@ -268,6 +302,9 @@ class ZyroRPC(
     }
 
     suspend fun build() {
+        val cleanedButtons = buttons.cleanUp()
+        val cleanedButtonUrls = buttonUrl.cleanUp()
+
         presence = Presence(
             activities = listOf(
                 Activity(
@@ -287,8 +324,8 @@ class ZyroRPC(
                         largeText = largeText?.sanitize(),
                         smallText = smallText?.sanitize()
                     ).takeIf { largeImage != null || smallImage != null },
-                    buttons = buttons.takeIf { buttons.size > 0 },
-                    metadata = Metadata(buttonUrls = buttonUrl).takeIf { buttonUrl.size > 0 },
+                    buttons = cleanedButtons.takeIf { it.isNotEmpty() },
+                    metadata = Metadata(buttonUrls = cleanedButtonUrls).takeIf { cleanedButtonUrls.isNotEmpty() },
                     applicationId = applicationIdNumber.takeIf { it.isNotEmpty() } ?: Constants.APPLICATION_ID,
                     url = url
                 )
@@ -311,11 +348,17 @@ class ZyroRPC(
 
     suspend fun updateRPC(commonRpc: CommonRpc, enableTimestamps: Boolean? = true) {
         if (!discordWebSocket.isActive) return
+
+        val cleanedButtons = buttons.cleanUp()
+        val cleanedButtonUrls = buttonUrl.cleanUp()
         var time = Timestamps(start = startTimestamps)
         if (commonRpc.time != null)
             Timestamps(end = commonRpc.time.end, start = commonRpc.time.start).also { time = it }
-        if (commonRpc.partyCurrentSize != null && commonRpc.partyMaxSize != null)
-            Party(id = "zyro", size = arrayOf(commonRpc.partyCurrentSize, commonRpc.partyMaxSize)).also { party = it }
+        party = if (commonRpc.partyCurrentSize != null && commonRpc.partyMaxSize != null) {
+            Party(id = "zyro", size = arrayOf(commonRpc.partyCurrentSize, commonRpc.partyMaxSize))
+        } else {
+            null
+        }
         discordWebSocket.sendActivity(
             Presence(
                 activities = listOf(
@@ -333,8 +376,8 @@ class ZyroRPC(
                                 smallText = commonRpc.smallText?.sanitize()
                             ).takeIf { commonRpc.largeImage != null || commonRpc.smallImage != null },
                         party = party.takeIf { party != null },
-                        buttons = buttons.takeIf { buttons.size > 0 },
-                        metadata = Metadata(buttonUrls = buttonUrl).takeIf { buttonUrl.size > 0 },
+                        buttons = cleanedButtons.takeIf { it.isNotEmpty() },
+                        metadata = Metadata(buttonUrls = cleanedButtonUrls).takeIf { cleanedButtonUrls.isNotEmpty() },
                         applicationId = applicationIdNumber.takeIf { it.isNotEmpty() } ?: Constants.APPLICATION_ID
 
                     )

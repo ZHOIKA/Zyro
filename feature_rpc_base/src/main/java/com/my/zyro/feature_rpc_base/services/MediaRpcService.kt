@@ -141,6 +141,7 @@ class MediaRpcService : Service() {
                     return
                 }
                 zyroRPC.apply {
+                    resetState()
                     setName(playingMedia.name)
                     setType(Prefs[Prefs.CUSTOM_ACTIVITY_TYPE, 0])
                     setDetails(playingMedia.details)

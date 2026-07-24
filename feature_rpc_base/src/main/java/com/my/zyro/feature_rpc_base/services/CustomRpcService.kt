@@ -93,6 +93,7 @@ class CustomRpcService : Service() {
                 )
 
                 zyroRPC.apply {
+                    resetState()
                     rpcData?.let {
                         setName(it.name.ifEmpty { "" })
                         setDetails(it.details.ifEmpty { null })

@@ -353,6 +353,7 @@ class ExperimentalRpc : Service() {
             }
 
             zyroRPC.apply {
+                resetState()
                 setName(finalName)
                 setType(appActivityTypes[effectivePackageName] ?: 0)
                 setStatus(Prefs[Prefs.CUSTOM_ACTIVITY_STATUS, "dnd"])
