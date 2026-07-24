@@ -105,8 +105,8 @@ object Prefs {
         )
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastDeleted > 24.hours.inWholeMilliseconds) {
-            remove(KEY_CACHE_SAVED_IMAGES)
-            remove(KEY_CACHE_ARTWORK)
+            remove(SAVED_IMAGES)
+            remove(SAVED_ARTWORK)
             set(KEY_CACHE_LAST_IMAGE_CLEANUP, currentTime)
         }
     }
@@ -287,8 +287,8 @@ object Prefs {
     const val EXPERIMENTAL_RPC_HIDE_ON_PAUSE = "zyro_exp_hide_pause"
     
     // Cache & Cleanup
-    private const val KEY_CACHE_SAVED_IMAGES = "zyro_cache_images"
-    private const val KEY_CACHE_ARTWORK = "zyro_cache_artwork"
+    const val SAVED_IMAGES = "zyro_cache_images"
+    const val SAVED_ARTWORK = "zyro_cache_artwork"
     private const val KEY_CACHE_LAST_IMAGE_CLEANUP = "zyro_cache_cleanup_time"
 
     // ============== Default Media Apps List ==============
