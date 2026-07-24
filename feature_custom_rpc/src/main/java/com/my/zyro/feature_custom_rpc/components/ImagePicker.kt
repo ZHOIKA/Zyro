@@ -5,6 +5,7 @@
  *  * https://github.com/dead8309/Kizzy
  *  * SPDX-License-Identifier: GPL-3.0-only
  *  ******************************************************************
+ */
 
 package com.my.zyro.feature_custom_rpc.components
 
