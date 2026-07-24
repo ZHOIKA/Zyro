@@ -81,8 +81,6 @@ fun getZyroColorScheme(
         inverseSurface = ZyroGray100,
         inverseOnSurface = ZyroBlack,
         inversePrimary = ZyroVioletLight,
-        surfaceDim = ZyroSurfaceDim,
-        surfaceBright = ZyroGray700,
     )
 }
 

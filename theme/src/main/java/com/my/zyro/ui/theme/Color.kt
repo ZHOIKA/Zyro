@@ -59,12 +59,12 @@ object LogColors {
     val VERBOSE = Color(0xFF9C27B0)     // Purple
     val DEFAULT = ZyroGray400           // Default gray
     
-    fun LogLevel.color() = Color(when (this) {
+    fun LogLevel.color() = when (this) {
         LogLevel.INFO -> INFO
         LogLevel.DEBUG -> DEBUG
         LogLevel.WARN -> WARNING
         LogLevel.ERROR -> ERROR
-    })
+    }
 }
 
 // Legacy compatibility - maps old Discord colors to new Zyro palette
@@ -72,4 +72,3 @@ object LogColors {
 val DISCORD_LIGHT_DARK = ZyroGray800         // was Color(0xFF282b30)
 val DISCORD_GREY = ZyroGray600               // was Color(0xFF36393e)
 val DISCORD_BLURPLE = ZyroViolet             // was Color(0xFF5663f1)
-
