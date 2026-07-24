@@ -306,6 +306,7 @@ class MediaRpcService : Service() {
                     startService(Intent(this, MediaRpcService::class.java))
                     return START_NOT_STICKY
                 }
+                else -> {}
             }
         }
         return START_STICKY

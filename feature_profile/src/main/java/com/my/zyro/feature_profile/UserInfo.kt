@@ -13,21 +13,23 @@
 package com.my.zyro.feature_profile
 
 import com.my.zyro.preference.Prefs
-import com.my.zyro.preference.Prefs.USER_BIO
-import com.my.zyro.preference.Prefs.USER_ID
-import com.my.zyro.preference.Prefs.USER_NITRO
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 import zyro.gateway.DiscordWebSocket
 import zyro.gateway.DiscordWebSocketImpl
 import zyro.gateway.entities.Payload
+import zyro.gateway.entities.PayloadData
+import zyro.gateway.entities.Ready
 
 suspend fun getUserInfo(token: String, onInfoSaved: () -> Unit) {
     val discordWebSocket: DiscordWebSocket = object: DiscordWebSocketImpl(token){
-        override fun Payload.handleDispatch(jsonString: String) {
-            if (this.t.toString() == "READY"){
-                val user = decodeReady(jsonString)?.user ?: return
-                Prefs[USER_ID] = user.id
-                Prefs[USER_BIO] = user.bio
-                Prefs[USER_NITRO] = user.premiumType in 1..3
+        override fun onDispatchEvent(payloadJson: String, payload: Payload) {
+            if (payload.t.toString() == "READY"){
+                val readyData = Json.decodeFromString<PayloadData<Ready>>(payloadJson).d ?: return
+                val user = readyData.user ?: return
+                Prefs[Prefs.USER_ID] = user.id ?: ""
+                Prefs[Prefs.USER_BIO] = user.bio ?: ""
+                Prefs[Prefs.USER_NITRO] = user.premiumType in 1..3
                 close()
                 onInfoSaved()
             }

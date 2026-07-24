@@ -169,7 +169,14 @@ open class DiscordWebSocketImpl(
             }
             else -> {} // Other dispatch events ignored
         }
+        onDispatchEvent(payloadJson, payload)
     }
+
+
+    /**
+     * Hook for subclasses to intercept dispatch events (e.g., READY)
+     */
+    protected open fun onDispatchEvent(payloadJson: String, payload: Payload) = Unit
 
     /**
      * Handles invalid session by re-identifying

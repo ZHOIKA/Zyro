@@ -221,6 +221,7 @@ object Prefs {
     
     // Application/User Data
     private const val KEY_APP_USER = "zyro_user_data"
+    const val USER_DATA = "zyro_user_data"
     private const val KEY_APP_LATEST_RELEASE = "zyro_latest_release"
     
     // Authentication
@@ -238,8 +239,10 @@ object Prefs {
     
     // App Selection
     private const val KEY_RPC_ENABLED_APPS = "zyro_rpc_enabled_apps"
+    const val ENABLED_APPS = "zyro_rpc_enabled_apps"
     private const val KEY_MEDIA_ENABLED_APPS = "zyro_media_enabled_apps"
     private const val KEY_EXP_ENABLED_APPS = "zyro_exp_enabled_apps"
+    const val ENABLED_EXPERIMENTAL_APPS = "zyro_exp_enabled_apps"
     
     // Media RPC Settings
     const val MEDIA_RPC_ARTIST_NAME = "zyro_media_artist"
