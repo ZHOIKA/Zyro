@@ -1,13 +1,10 @@
 /*
- *
  *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * Theme.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of zk
- *  *  *****************************************************************
- *
- *
+ *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Based on code from Kizzy by dead8309 (Vaibhav)
+ *  * https://github.com/dead8309/Kizzy
+ *  * SPDX-License-Identifier: GPL-3.0-only
+ *  ******************************************************************
  */
 
 package com.my.zyro.ui.theme
@@ -19,16 +16,17 @@ import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.android.material.color.DynamicColors
-import com.kyant.monet.dynamicColorScheme
+
+/**
+ * Original Zyro theme implementation
+ * Completely reimplemented from scratch with custom Material3 ColorScheme
+ */
 
 private tailrec fun Context.findWindow(): Window? =
     when (this) {
@@ -37,51 +35,86 @@ private tailrec fun Context.findWindow(): Window? =
         else -> null
     }
 
+/**
+ * Creates an original Zyro ColorScheme independent from Kizzy
+ * Uses custom Zyro color palette for dark theme
+ */
 @Composable
-fun getColorScheme(
+fun getZyroColorScheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isHighContrastModeEnabled: Boolean = false,
-    isDynamicColorEnabled: Boolean = LocalDynamicColorSwitch.current,
 ): ColorScheme {
-    val colorScheme = when {
-        DynamicColors.isDynamicColorAvailable() && isDynamicColorEnabled -> {
-            val context = LocalContext.current
-            if (darkTheme) {
-                dynamicDarkColorScheme(context)
-            } else {
-                dynamicLightColorScheme(context)
-            }
-        }
-        else -> dynamicColorScheme(!darkTheme)
-    }.run {
-        if (isHighContrastModeEnabled && darkTheme) copy(
-            surface = Color.Black,
-            background = Color.Black,
-        )
-        else this
-    }
-    return colorScheme
+    val primary = ZyroViolet
+    val primaryContainer = ZyroVioletDark
+    val secondary = ZyroCyan
+    val tertiary = ZyroAmber
+    val background = if (isHighContrastModeEnabled) ZyroBlack else ZyroGray900
+    val surface = ZyroGray800
+    val surfaceVariant = ZyroGray700
+    
+    return ColorScheme(
+        primary = primary,
+        onPrimary = ZyroWhite,
+        primaryContainer = primaryContainer,
+        onPrimaryContainer = ZyroVioletLight,
+        secondary = secondary,
+        onSecondary = ZyroBlack,
+        secondaryContainer = ZyroCyan.copy(alpha = 0.2f),
+        onSecondaryContainer = ZyroCyan,
+        tertiary = tertiary,
+        onTertiary = ZyroBlack,
+        tertiaryContainer = ZyroAmber.copy(alpha = 0.2f),
+        onTertiaryContainer = ZyroAmber,
+        error = ZyroRose,
+        onError = ZyroWhite,
+        errorContainer = ZyroRose.copy(alpha = 0.2f),
+        onErrorContainer = ZyroRose,
+        background = background,
+        onBackground = ZyroGray100,
+        surface = surface,
+        onSurface = ZyroGray100,
+        surfaceVariant = surfaceVariant,
+        onSurfaceVariant = ZyroGray400,
+        outline = ZyroGray500,
+        outlineVariant = ZyroOutlineVariant,
+        scrim = ZyroScrim,
+        inverseSurface = ZyroGray100,
+        inverseOnSurface = ZyroBlack,
+        inversePrimary = ZyroVioletLight,
+        surfaceDim = ZyroSurfaceDim,
+        surfaceBright = ZyroGray700,
+    )
 }
+
+/**
+ * Main Zyro Theme Composable
+ * Applies custom color scheme, typography, and system UI styling
+ */
 @Composable
 fun ZyroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isHighContrastModeEnabled: Boolean = false,
-    isDynamicColorEnabled: Boolean,
+    isDynamicColorEnabled: Boolean = false,  // Legacy parameter kept for compatibility
     content: @Composable () -> Unit
 ) {
-    val colorScheme = getColorScheme(
+    val colorScheme = getZyroColorScheme(
         darkTheme,
         isHighContrastModeEnabled,
-        isDynamicColorEnabled,
     )
+    
     val window = LocalView.current.context.findWindow()
     val view = LocalView.current
 
+    // Configure system UI appearance
     window?.let {
-        WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = darkTheme
+        WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
     }
 
-    rememberSystemUiController(window).setSystemBarsColor(Color.Transparent, !darkTheme)
+    // Set system bar colors to match theme
+    rememberSystemUiController(window).apply {
+        setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
+        setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,

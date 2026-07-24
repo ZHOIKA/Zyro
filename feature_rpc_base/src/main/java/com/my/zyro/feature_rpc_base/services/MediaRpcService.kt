@@ -1,13 +1,10 @@
 /*
- *
  *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * MediaRpcService.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of zk
- *  *  *****************************************************************
- *
- *
+ *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Based on code from Kizzy by dead8309 (Vaibhav)
+ *  * https://github.com/dead8309/Kizzy
+ *  * SPDX-License-Identifier: GPL-3.0-only
+ *  ******************************************************************
  */
 
 package com.my.zyro.feature_rpc_base.services
@@ -41,22 +38,27 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
+/**
+ * Zyro Media RPC Service
+ * Monitors active media sessions and broadcasts Discord Rich Presence
+ * Completely reimplemented media detection and presence update logic
+ */
 @AndroidEntryPoint
 class MediaRpcService : Service() {
+
+    // ============== Dependencies ==============
 
     @Inject
     lateinit var zyroRPC: ZyroRPC
 
     @Inject
-    lateinit var scope: CoroutineScope
+    lateinit var serviceScope: CoroutineScope
 
     @Inject
-    lateinit var getCurrentPlayingMedia: GetCurrentPlayingMedia
+    lateinit var mediaDataProvider: GetCurrentPlayingMedia
 
     @Inject
     lateinit var logger: Logger
-
-    private var wakeLock: WakeLock? = null
 
     @Inject
     lateinit var notificationManager: NotificationManager
@@ -64,185 +66,270 @@ class MediaRpcService : Service() {
     @Inject
     lateinit var notificationBuilder: Notification.Builder
 
-    private lateinit var mediaSessionManager: MediaSessionManager
+    // ============== Internal State ==============
 
-    private var currentMediaController: MediaController? = null
+    private var deviceWakeLock: WakeLock? = null
+    private lateinit var mediaSession: MediaSessionManager
+    private var activeMediaController: MediaController? = null
 
+    /**
+     * Service initialization - setup prerequisites and start monitoring
+     */
     @SuppressLint("WakelockTimeout")
     override fun onCreate() {
         super.onCreate()
-        val token = Prefs[TOKEN, ""]
-        if (token.isEmpty()) stopSelf()
-        setupWakeLock()
-        val intent = Intent(this, MediaRpcService::class.java)
-        intent.action = Constants.ACTION_STOP_SERVICE
-        val pendingIntent = PendingIntent.getService(
-            this,
-            0, intent, PendingIntent.FLAG_IMMUTABLE
-        )
+        
+        // Verify authentication token exists
+        val authToken = Prefs[TOKEN, ""]
+        if (authToken.isEmpty()) {
+            logger.i("MediaRPC", "No authentication token, stopping service")
+            stopSelf()
+            return
+        }
+        
+        // ============== Wakelock Setup ==============
+        
+        initializeWakeLock()
 
-        val restartIntent = Intent(this, MediaRpcService::class.java)
-        restartIntent.action = Constants.ACTION_RESTART_SERVICE
-        val restartPendingIntent = PendingIntent.getService(
-            this,
-            0, restartIntent, PendingIntent.FLAG_IMMUTABLE
-        )
+        // ============== Notification Setup ==============
 
-        val notification = notificationBuilder
+        val stopAction = Intent(this, MediaRpcService::class.java).apply {
+            action = Constants.ACTION_STOP_SERVICE
+        }
+        val stopPending = PendingIntent.getService(this, 0, stopAction, PendingIntent.FLAG_IMMUTABLE)
+
+        val restartAction = Intent(this, MediaRpcService::class.java).apply {
+            action = Constants.ACTION_RESTART_SERVICE
+        }
+        val restartPending = PendingIntent.getService(this, 0, restartAction, PendingIntent.FLAG_IMMUTABLE)
+
+        val serviceNotification = notificationBuilder
             .setSmallIcon(R.drawable.ic_media_rpc)
-            .addAction(R.drawable.ic_media_rpc, getString(R.string.restart), restartPendingIntent)
-            .addAction(R.drawable.ic_media_rpc, getString(R.string.exit), pendingIntent)
             .setContentText(getString(R.string.idling_notification))
+            .addAction(R.drawable.ic_media_rpc, getString(R.string.restart), restartPending)
+            .addAction(R.drawable.ic_media_rpc, getString(R.string.exit), stopPending)
             .build()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            startForeground(Constants.NOTIFICATION_ID, notification)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            startForeground(Constants.NOTIFICATION_ID, serviceNotification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
         } else {
-            startForeground(Constants.NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            @Suppress("DEPRECATION")
+            startForeground(Constants.NOTIFICATION_ID, serviceNotification)
         }
 
-        mediaSessionManager = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
-        mediaSessionManager.addOnActiveSessionsChangedListener(::activeSessionsListener, ComponentName(this, NotificationListener::class.java))
+        // ============== Media Session Monitoring Setup ==============
 
-        // Register first media session
-        activeSessionsListener(mediaSessionManager.getActiveSessions(ComponentName(this, NotificationListener::class.java)), false)
-    }
-
-    suspend private fun updatePresence() {
-        val enableTimestamps = Prefs[MEDIA_RPC_ENABLE_TIMESTAMPS, false]
-        val playingMedia = getCurrentPlayingMedia()
-
-        notificationManager.notify(
-            Constants.NOTIFICATION_ID,
-            notificationBuilder
-                .setContentTitle(playingMedia.name.ifEmpty { getString(R.string.app_name) })
-                .setContentText(
-                    (playingMedia.details ?: "").ifEmpty { getString(R.string.idling_notification) }
-                )
-                .setLargeIcon(
-                    rpcImage = playingMedia.largeImage,
-                    context = this@MediaRpcService
-                )
-                .build()
+        mediaSession = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
+        
+        val notificationListenerComponent = ComponentName(this, NotificationListener::class.java)
+        mediaSession.addOnActiveSessionsChangedListener(
+            ::onMediaSessionsChanged,
+            notificationListenerComponent
         )
 
-        val rpcButtonsString = Prefs[Prefs.RPC_BUTTONS_DATA, "{}"]
-        val rpcButtons = Json.decodeFromString<RpcButtons>(rpcButtonsString)
-        when (zyroRPC.isRpcRunning()) {
-            true -> {
-                if (playingMedia.name.isBlank()) {
-                    logger.d("MediaRPC", "Updating RPC with empty data, stopping RPC")
-                    zyroRPC.closeRPC()
-                }
-                zyroRPC.updateRPC(playingMedia, enableTimestamps)
+        // Initial session registration
+        val initialSessions = mediaSession.getActiveSessions(notificationListenerComponent)
+        onMediaSessionsChanged(initialSessions, isEvent = false)
+    }
+
+    /**
+     * Initializes device wakelock to prevent service suspension during media monitoring
+     */
+    @SuppressLint("WakelockTimeout")
+    private fun initializeWakeLock() {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        deviceWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "zyro:media_rpc_service")
+        deviceWakeLock?.acquire()
+    }
+
+    /**
+     * Fetches current media metadata and updates Discord presence payload
+     */
+    private suspend fun updateMediaPresence() {
+        try {
+            val shouldIncludeTime = Prefs[MEDIA_RPC_ENABLE_TIMESTAMPS, false]
+            val currentMedia = mediaDataProvider()
+
+            // Update service notification with media info
+            notificationManager.notify(
+                Constants.NOTIFICATION_ID,
+                notificationBuilder
+                    .setContentTitle(currentMedia.name.ifEmpty { getString(R.string.app_name) })
+                    .setContentText(
+                        (currentMedia.details ?: "").ifEmpty { getString(R.string.idling_notification) }
+                    )
+                    .setLargeIcon(
+                        rpcImage = currentMedia.largeImage,
+                        context = this@MediaRpcService
+                    )
+                    .build()
+            )
+
+            // Retrieve saved button configuration
+            val buttonConfigJson = Prefs[Prefs.RPC_BUTTONS_DATA, "{}"]
+            val buttonConfig = try {
+                Json.decodeFromString<RpcButtons>(buttonConfigJson)
+            } catch (e: Exception) {
+                RpcButtons()
             }
-            false -> {
-                if (playingMedia.name.isBlank()) {
-                    logger.d("MediaRPC", "Skipping RPC update with empty data")
+
+            // Update or start RPC based on current state
+            if (zyroRPC.isRpcRunning()) {
+                if (currentMedia.name.isBlank()) {
+                    logger.d("MediaRPC", "Media empty, closing RPC")
+                    zyroRPC.closeRPC()
+                } else {
+                    zyroRPC.updateRPC(currentMedia, shouldIncludeTime)
+                }
+            } else {
+                if (currentMedia.name.isBlank()) {
+                    logger.d("MediaRPC", "Skipping RPC start with empty media")
                     return
                 }
+                
+                // Build new presence payload
                 zyroRPC.apply {
                     resetState()
-                    setName(playingMedia.name)
+                    
+                    setName(currentMedia.name)
                     setType(Prefs[Prefs.CUSTOM_ACTIVITY_TYPE, 0])
-                    setDetails(playingMedia.details)
-                    setState(playingMedia.state)
-                    setStartTimestamps(if (enableTimestamps) playingMedia.time?.start else null)
-                    setStopTimestamps(if (enableTimestamps) playingMedia.time?.end else null)
-                    setStatus(Prefs[Prefs.CUSTOM_ACTIVITY_STATUS, "dnd"])
-                    setLargeImage(playingMedia.largeImage, playingMedia.largeText)
-                    setSmallImage(playingMedia.smallImage, playingMedia.smallText)
-                    if (Prefs[Prefs.USE_RPC_BUTTONS, false]) {
-                        with(rpcButtons) {
-                            setButton1(button1.takeIf { it.isNotEmpty() })
-                            setButton1URL(button1Url.takeIf { it.isNotEmpty() })
-                            setButton2(button2.takeIf { it.isNotEmpty() })
-                            setButton2URL(button2Url.takeIf { it.isNotEmpty() })
-                        }
+                    setDetails(currentMedia.details)
+                    setState(currentMedia.state)
+                    
+                    // Include timestamps if enabled
+                    if (shouldIncludeTime) {
+                        setStartTimestamps(currentMedia.time?.start)
+                        setStopTimestamps(currentMedia.time?.end)
                     }
+                    
+                    setStatus(Prefs[Prefs.CUSTOM_ACTIVITY_STATUS, "dnd"])
+                    setLargeImage(currentMedia.largeImage, currentMedia.largeText)
+                    setSmallImage(currentMedia.smallImage, currentMedia.smallText)
+                    
+                    // Attach buttons if configured
+                    if (Prefs[Prefs.USE_RPC_BUTTONS, false]) {
+                        setButton1(buttonConfig.button1.takeIf { it.isNotEmpty() })
+                        setButton1URL(buttonConfig.button1Url.takeIf { it.isNotEmpty() })
+                        setButton2(buttonConfig.button2.takeIf { it.isNotEmpty() })
+                        setButton2URL(buttonConfig.button2Url.takeIf { it.isNotEmpty() })
+                    }
+                    
                     build()
                 }
             }
+        } catch (e: Exception) {
+            logger.e("MediaRPC", "Presence update failed: ${e.message}")
         }
     }
 
-    private val mediaControllerCallback = MediaControllerCallback()
+    /**
+     * Handles media session list changes
+     * Registers callback for new active session or unregisters when none available
+     */
+    private fun onMediaSessionsChanged(
+        sessions: List<MediaController>?,
+        isEvent: Boolean = true
+    ) {
+        logger.d("MediaRPC", "Media sessions updated. Count: ${sessions?.size ?: 0}")
 
-    private fun activeSessionsListener(mediaSessions: List<MediaController>?, isEvent: Boolean = true) {
-        logger.d("MediaRPC", "Active sessions changed")
+        // Debounce: event may fire before system updates session list
+        if (isEvent) {
+            runBlocking { delay(1500) }
+        }
 
-        // For some reason, event is occasionally fired before session list is actually updated
-        if (isEvent) runBlocking { delay(1500) }
-
-        if (mediaSessions?.isNotEmpty() == true) {
-            currentMediaController?.unregisterCallback(mediaControllerCallback)
-            currentMediaController = mediaSessionManager.getActiveSessions(ComponentName(this, NotificationListener::class.java)).firstOrNull()
-            currentMediaController?.registerCallback(mediaControllerCallback)
+        // Unregister old callback and register new one
+        activeMediaController?.unregisterCallback(mediaCallback)
+        
+        if (sessions?.isNotEmpty() == true) {
+            val notificationListenerComponent = ComponentName(this, NotificationListener::class.java)
+            activeMediaController = mediaSession.getActiveSessions(notificationListenerComponent).firstOrNull()
+            activeMediaController?.registerCallback(mediaCallback)
         } else {
-            currentMediaController?.unregisterCallback(mediaControllerCallback)
-            currentMediaController = null
+            activeMediaController = null
         }
 
-        scope.coroutineContext.cancelChildren()
-        scope.launch { updatePresence() }
+        // Trigger presence update
+        serviceScope.coroutineContext.cancelChildren()
+        serviceScope.launch { updateMediaPresence() }
     }
 
-    private inner class MediaControllerCallback: MediaController.Callback() {
+    /**
+     * Callback for media controller state changes
+     */
+    private inner class MediaPlaybackCallback : MediaController.Callback() {
+        
         override fun onPlaybackStateChanged(state: PlaybackState?) {
             super.onPlaybackStateChanged(state)
-
-            // Cancel all previous jobs and start new job to prevent conflict/spam
-            scope.coroutineContext.cancelChildren()
-            scope.launch {
+            logger.d("MediaRPC", "Playback state changed")
+            
+            serviceScope.coroutineContext.cancelChildren()
+            serviceScope.launch {
                 delay(1000)
-                updatePresence()
+                updateMediaPresence()
             }
         }
+
         override fun onMetadataChanged(metadata: MediaMetadata?) {
             super.onMetadataChanged(metadata)
-
-            scope.coroutineContext.cancelChildren()
-            scope.launch {
+            logger.d("MediaRPC", "Media metadata changed")
+            
+            serviceScope.coroutineContext.cancelChildren()
+            serviceScope.launch {
                 delay(1000)
-                updatePresence()
+                updateMediaPresence()
             }
         }
+
         override fun onSessionDestroyed() {
             super.onSessionDestroyed()
-
-            scope.coroutineContext.cancelChildren()
-            scope.launch { updatePresence() }
+            logger.d("MediaRPC", "Media session destroyed")
+            
+            serviceScope.coroutineContext.cancelChildren()
+            serviceScope.launch { updateMediaPresence() }
         }
     }
 
-    @SuppressLint("WakelockTimeout")
-    private fun setupWakeLock() {
-        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "zyro:MediaRPC")
-        wakeLock?.acquire()
-    }
+    private val mediaCallback = MediaPlaybackCallback()
 
+    /**
+     * Handles service start commands (stop/restart requests)
+     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.let {
-            it.action?.let { ac ->
-                if (ac == Constants.ACTION_STOP_SERVICE)
+        intent?.action?.let { action ->
+            when (action) {
+                Constants.ACTION_STOP_SERVICE -> {
                     stopSelf()
-                else if (ac == Constants.ACTION_RESTART_SERVICE) {
+                    return START_NOT_STICKY
+                }
+                Constants.ACTION_RESTART_SERVICE -> {
                     stopSelf()
                     startService(Intent(this, MediaRpcService::class.java))
+                    return START_NOT_STICKY
                 }
             }
         }
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
+    /**
+     * Service cleanup on destruction
+     */
     override fun onDestroy() {
-        mediaSessionManager.removeOnActiveSessionsChangedListener(::activeSessionsListener)
-        currentMediaController?.unregisterCallback(mediaControllerCallback)
-        scope.cancel()
+        try {
+            mediaSession.removeOnActiveSessionsChangedListener(::onMediaSessionsChanged)
+            activeMediaController?.unregisterCallback(mediaCallback)
+        } catch (e: Exception) {
+            logger.e("MediaRPC", "Cleanup error: ${e.message}")
+        }
+        
+        // Cleanup RPC and resources
         zyroRPC.closeRPC()
-        wakeLock?.let {
+        serviceScope.cancel()
+        
+        deviceWakeLock?.let {
             if (it.isHeld) it.release()
         }
+        
         super.onDestroy()
     }
 

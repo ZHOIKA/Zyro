@@ -23,22 +23,39 @@ import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * Zyro Discord WebSocket Implementation
+ * Completely reimplemented WebSocket client for Discord Gateway v10 protocol
+ * Manages connection lifecycle, heartbeat, and presence updates independently
+ */
 open class DiscordWebSocketImpl(
-    private val token: String,
+    private val authToken: String,
     private val logger: Logger = NoOpLogger
 ) : DiscordWebSocket {
-    private val gatewayUrl = "wss://gateway.discord.gg/?v=10&encoding=json"
-    private var websocket: DefaultClientWebSocketSession? = null
-    private var sequence = 0
-    private var sessionId: String? = null
-    private var heartbeatInterval = 0L
-    private var resumeGatewayUrl: String? = null
-    private var heartbeatJob: Job? = null
-    private var connected = false
-    private var client: HttpClient = HttpClient {
+    
+    // ============== Gateway Configuration ==============
+    
+    private companion object {
+        const val DISCORD_GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json"
+        const val RECONNECT_DELAY_MS = 200L
+        const val SOCKET_CHECK_INTERVAL_MS = 10L
+    }
+    
+    // ============== Internal State ==============
+    
+    private var wsSession: DefaultClientWebSocketSession? = null
+    private var lastSequenceNumber = 0
+    private var currentSessionId: String? = null
+    private var resumeUrl: String? = null
+    private var heartbeatIntervalMs = 0L
+    private var activeHeartbeatJob: Job? = null
+    private var isConnectedToAccount = false
+    
+    private val httpClient: HttpClient = HttpClient {
         install(WebSockets)
     }
-    private val json = Json{
+    
+    private val jsonCodec = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
     }
@@ -46,199 +63,290 @@ open class DiscordWebSocketImpl(
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.Default
 
+    // ============== Connection Lifecycle ==============
+
+    /**
+     * Initiates WebSocket connection to Discord Gateway
+     * Handles initial connection and message processing loop
+     */
     override suspend fun connect() {
         launch {
             try {
-                logger.i("Gateway","Connect called")
-                val url = resumeGatewayUrl ?: gatewayUrl
-                websocket = client.webSocketSession(url)
+                logger.i("GatewayImpl", "Initiating WebSocket connection")
+                
+                val targetUrl = resumeUrl ?: DISCORD_GATEWAY_URL
+                wsSession = httpClient.webSocketSession(targetUrl)
 
-                // start receiving messages
-                websocket!!.incoming.receiveAsFlow()
-                    .collect {
-                        when (it) {
-                            is Frame.Text -> {
-                                val jsonString = it.readText()
-                                onMessage(jsonString)
-                            }
-                            else -> {}
-                        }
+                // Main message processing loop
+                wsSession!!.incoming.receiveAsFlow().collect { frame ->
+                    when (frame) {
+                        is Frame.Text -> processIncomingMessage(frame.readText())
+                        else -> {} // Ignore other frame types
                     }
-                handleClose()
+                }
+                
+                processConnectionClosed()
+                
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                logger.e("Gateway",e.message?:"")
+                logger.e("GatewayImpl", "Connection error: ${e.message ?: "Unknown"}")
                 close()
             }
         }
     }
 
-    private suspend fun handleClose(){
-        heartbeatJob?.cancel()
-        connected = false
-        val close = websocket?.closeReason?.await()
-        logger.w("Gateway","Closed with code: ${close?.code}, " +
-                "reason: ${close?.message}, " +
-                "can_reconnect: ${close?.code?.toInt() == 4000}")
-        if (close?.code?.toInt() == 4000) {
-            delay(200.milliseconds)
+    /**
+     * Handles graceful connection closure and reconnection logic
+     */
+    private suspend fun processConnectionClosed() {
+        activeHeartbeatJob?.cancel()
+        isConnectedToAccount = false
+        
+        val closeReason = wsSession?.closeReason?.await()
+        val closeCode = closeReason?.code?.toInt()
+        val canReconnect = closeCode == 4000
+        
+        logger.w(
+            "GatewayImpl",
+            "Connection closed. Code: $closeCode, Reason: ${closeReason?.message}, Reconnect: $canReconnect"
+        )
+        
+        if (canReconnect) {
+            delay(RECONNECT_DELAY_MS.milliseconds)
             connect()
-        } else
+        } else {
             close()
-    }
-
-    private suspend fun onMessage(jsonString: String) {
-        val payload = json.decodeFromString<Payload>(jsonString)
-        logger.d("Gateway","Received op:${payload.op}, seq:${payload.s}, event :${payload.t}")
-
-        payload.s?.let {
-            sequence = it
-        }
-        when (payload.op) {
-            DISPATCH -> payload.handleDispatch(jsonString)
-            HEARTBEAT -> sendHeartBeat()
-            RECONNECT -> reconnectWebSocket()
-            INVALID_SESSION -> handleInvalidSession()
-            HELLO -> handleHello(jsonString)
-            else -> {}
         }
     }
 
-    open fun Payload.handleDispatch(jsonString: String) {
-        when (this.t.toString()) {
+    /**
+     * Processes incoming gateway payloads and dispatches to appropriate handler
+     */
+    private suspend fun processIncomingMessage(payloadJson: String) {
+        try {
+            val gatewayPayload = jsonCodec.decodeFromString<Payload>(payloadJson)
+            
+            logger.d(
+                "GatewayImpl",
+                "Received opcode:${gatewayPayload.op}, seq:${gatewayPayload.s}, event:${gatewayPayload.t}"
+            )
+
+            // Update sequence tracking
+            gatewayPayload.s?.let { seq ->
+                lastSequenceNumber = seq
+            }
+
+            // Route to appropriate handler based on opcode
+            when (gatewayPayload.op) {
+                DISPATCH -> handleDispatchEvent(payloadJson, gatewayPayload)
+                HEARTBEAT -> sendHeartbeatAck()
+                RECONNECT -> initiateReconnection()
+                INVALID_SESSION -> handleSessionInvalid()
+                HELLO -> handleHelloPayload(payloadJson)
+                else -> {} // Unhandled opcodes ignored
+            }
+        } catch (e: Exception) {
+            logger.e("GatewayImpl", "Error processing message: ${e.message}")
+        }
+    }
+
+    /**
+     * Handles DISPATCH events (READY, RESUMED, etc.)
+     */
+    private fun handleDispatchEvent(payloadJson: String, payload: Payload) {
+        when (payload.t.toString()) {
             "READY" -> {
-                val ready = decodePayloadData<Ready>(jsonString) ?: return
-                sessionId = ready.sessionId
-                resumeGatewayUrl = ready.resumeGatewayUrl + "/?v=10&encoding=json"
-                logger.i("Gateway","resume_gateway_url updated to $resumeGatewayUrl")
-                logger.i("Gateway","session_id updated to $sessionId")
-                connected = true
-                return
+                val readyData = decodePayloadData<Ready>(payloadJson) ?: return
+                currentSessionId = readyData.sessionId
+                resumeUrl = readyData.resumeGatewayUrl + "/?v=10&encoding=json"
+                logger.i("GatewayImpl", "Session ready. Resume URL: $resumeUrl")
+                logger.i("GatewayImpl", "Session ID: $currentSessionId")
+                isConnectedToAccount = true
             }
             "RESUMED" -> {
-                logger.i("Gateway","Session Resumed")
+                logger.i("GatewayImpl", "Session successfully resumed")
+                isConnectedToAccount = true
             }
-            else -> {}
+            else -> {} // Other dispatch events ignored
         }
     }
 
-    private suspend inline fun handleInvalidSession() {
-        logger.i("Gateway","Handling Invalid Session")
-        logger.d("Gateway","Sending Identify after 150ms")
+    /**
+     * Handles invalid session by re-identifying
+     */
+    private suspend fun handleSessionInvalid() {
+        logger.i("GatewayImpl", "Invalid session detected, re-identifying")
         delay(150)
-        sendIdentify()
+        sendIdentifyPayload()
     }
 
-    private suspend inline fun handleHello(jsonString: String) {
-        if (sequence > 0 && !sessionId.isNullOrBlank()) {
-            sendResume()
+    /**
+     * Handles HELLO opcode to extract heartbeat interval and proceed with auth flow
+     */
+    private suspend fun handleHelloPayload(payloadJson: String) {
+        // Determine if we should resume or identify
+        val shouldResume = lastSequenceNumber > 0 && !currentSessionId.isNullOrBlank()
+        
+        if (shouldResume) {
+            sendResumePayload()
         } else {
-            sendIdentify()
+            sendIdentifyPayload()
         }
-        heartbeatInterval = decodePayloadData<Heartbeat>(jsonString)?.heartbeatInterval ?: return
-        logger.i("Gateway","Setting heartbeatInterval= $heartbeatInterval")
-        startHeartbeatJob(heartbeatInterval)
+
+        // Extract and set heartbeat interval
+        val heartbeatData = decodePayloadData<Heartbeat>(payloadJson)
+        heartbeatIntervalMs = heartbeatData?.heartbeatInterval ?: return
+        logger.i("GatewayImpl", "Heartbeat interval set: ${heartbeatIntervalMs}ms")
+        
+        startHeartbeatLoop(heartbeatIntervalMs)
     }
 
-    protected fun decodeReady(jsonString: String): Ready? {
-        return decodePayloadData(jsonString)
-    }
+    // ============== Payload Decoding ==============
 
+    /**
+     * Decodes typed payload data from gateway JSON
+     */
     private inline fun <reified T> decodePayloadData(jsonString: String): T? {
-        return json.decodeFromString<PayloadData<T>>(jsonString).d
+        return try {
+            jsonCodec.decodeFromString<PayloadData<T>>(jsonString).d
+        } catch (e: Exception) {
+            logger.e("GatewayImpl", "Failed to decode payload data: ${e.message}")
+            null
+        }
     }
 
-    private suspend fun sendHeartBeat() {
-        logger.i("Gateway","Sending $HEARTBEAT with seq: $sequence")
-        send(
-            op = HEARTBEAT,
-            d = if (sequence == 0) "null" else sequence.toString(),
+    // ============== Outgoing Messages ==============
+
+    /**
+     * Sends heartbeat acknowledgment with current sequence
+     */
+    private suspend fun sendHeartbeatAck() {
+        logger.i("GatewayImpl", "Sending heartbeat ACK with seq: $lastSequenceNumber")
+        transmitPayload(
+            opcode = HEARTBEAT,
+            data = if (lastSequenceNumber == 0) "null" else lastSequenceNumber.toString()
         )
     }
 
-    private suspend inline fun reconnectWebSocket() {
-        websocket?.close(
+    /**
+     * Sends identify payload to establish new session
+     */
+    private suspend fun sendIdentifyPayload() {
+        logger.i("GatewayImpl", "Sending IDENTIFY payload")
+        transmitPayload(
+            opcode = IDENTIFY,
+            data = authToken.toIdentifyPayload()
+        )
+    }
+
+    /**
+     * Sends resume payload to restore existing session
+     */
+    private suspend fun sendResumePayload() {
+        logger.i("GatewayImpl", "Sending RESUME payload")
+        transmitPayload(
+            opcode = RESUME,
+            data = Resume(
+                seq = lastSequenceNumber,
+                sessionId = currentSessionId,
+                token = authToken
+            )
+        )
+    }
+
+    /**
+     * Initiates reconnection by closing socket with reconnect code
+     */
+    private suspend fun initiateReconnection() {
+        logger.i("GatewayImpl", "Reconnection requested by gateway")
+        wsSession?.close(
             CloseReason(
                 code = 4000,
-                message = "Attempting to reconnect"
+                message = "Zyro reconnection initiated"
             )
         )
     }
 
-    private suspend fun sendIdentify() {
-        logger.i("Gateway","Sending $IDENTIFY")
-        send(
-            op = IDENTIFY,
-            d = token.toIdentifyPayload()
-        )
-    }
-
-    private suspend fun sendResume() {
-        logger.i("Gateway","Sending $RESUME")
-        send(
-            op = RESUME,
-            d = Resume(
-                seq = sequence,
-                sessionId = sessionId,
-                token = token
+    /**
+     * Generic payload transmission
+     */
+    private suspend inline fun <reified T> transmitPayload(opcode: OpCode, data: T?) {
+        if (wsSession?.isActive == true) {
+            val outgoingPayload = jsonCodec.encodeToString(
+                OutgoingPayload(
+                    op = opcode,
+                    d = data
+                )
             )
-        )
+            wsSession?.send(Frame.Text(outgoingPayload))
+        }
     }
 
-    private fun startHeartbeatJob(interval: Long) {
-        heartbeatJob?.cancel()
-        heartbeatJob = launch {
+    // ============== Heartbeat Management ==============
+
+    /**
+     * Starts periodic heartbeat job
+     */
+    private fun startHeartbeatLoop(intervalMs: Long) {
+        activeHeartbeatJob?.cancel()
+        activeHeartbeatJob = launch {
             while (isActive) {
-                sendHeartBeat()
-                delay(interval)
+                sendHeartbeatAck()
+                delay(intervalMs)
             }
         }
     }
 
-    private fun isSocketConnectedToAccount(): Boolean {
-        return connected && websocket?.isActive == true
+    /**
+     * Checks if socket is fully connected to Discord account
+     */
+    private fun isFullyConnected(): Boolean {
+        return isConnectedToAccount && wsSession?.isActive == true
     }
 
+    /**
+     * Checks if WebSocket session is active
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun isWebSocketConnected(): Boolean {
-        return websocket?.incoming != null && websocket?.outgoing?.isClosedForSend == false
+        return wsSession?.incoming != null && wsSession?.outgoing?.isClosedForSend == false
     }
 
-    private suspend inline fun <reified T> send(op: OpCode, d: T?) {
-        if (websocket?.isActive == true) {
-            val payload = json.encodeToString(
-                OutgoingPayload(
-                    op = op,
-                    d = d,
-                )
-            )
-            websocket?.send(Frame.Text(payload))
-        }
-    }
+    // ============== Presence Updates ==============
 
-    override fun close() {
-        heartbeatJob?.cancel()
-        heartbeatJob = null
-        this.cancel()
-        resumeGatewayUrl = null
-        sessionId = null
-        connected = false
-        runBlocking {
-            websocket?.close()
-            logger.e("Gateway","Connection to gateway closed")
-        }
-    }
-
+    /**
+     * Sends presence/activity update to Discord
+     */
     override suspend fun sendActivity(presence: Presence) {
-        // TODO : Figure out a better way to wait for socket to be connected to account
-        while (!isSocketConnectedToAccount()){
-            delay(10.milliseconds)
+        // Wait for account connection before sending
+        while (!isFullyConnected()) {
+            delay(SOCKET_CHECK_INTERVAL_MS.milliseconds)
         }
-        logger.i("Gateway","Sending $PRESENCE_UPDATE")
-        send(
-            op = PRESENCE_UPDATE,
-            d = presence
+        
+        logger.i("GatewayImpl", "Transmitting presence update")
+        transmitPayload(
+            opcode = PRESENCE_UPDATE,
+            data = presence
         )
     }
 
+    // ============== Resource Cleanup ==============
+
+    /**
+     * Gracefully closes WebSocket connection and cancels all jobs
+     */
+    override fun close() {
+        activeHeartbeatJob?.cancel()
+        activeHeartbeatJob = null
+        this.cancel()
+        
+        resumeUrl = null
+        currentSessionId = null
+        isConnectedToAccount = false
+        
+        runBlocking {
+            wsSession?.close()
+            logger.e("GatewayImpl", "WebSocket connection terminated")
+        }
+    }
 }

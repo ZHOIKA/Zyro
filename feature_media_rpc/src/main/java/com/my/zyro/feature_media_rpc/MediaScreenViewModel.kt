@@ -1,13 +1,10 @@
 /*
- *
  *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * MediaScreenViewModel.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of zk
- *  *  *****************************************************************
- *
- *
+ *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Based on code from Kizzy by dead8309 (Vaibhav)
+ *  * https://github.com/dead8309/Kizzy
+ *  * SPDX-License-Identifier: GPL-3.0-only
+ *  ******************************************************************
  */
 
 package com.my.zyro.feature_media_rpc
@@ -56,7 +53,7 @@ class MediaScreenViewModel @Inject constructor(
 
     fun updateMediaAppEnabled(pkg: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            Prefs.saveMediaAppToPrefs(pkg)
+            Prefs.toggleMediaApp(pkg)
             _state.update { currentState ->
                 currentState.copy(
                     enabledApps = currentState.enabledApps.toMutableMap().apply {

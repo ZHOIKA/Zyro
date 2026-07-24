@@ -1,13 +1,10 @@
 /*
- *
  *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * ExperimentalRpcViewmodel.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of zk
- *  *  *****************************************************************
- *
- *
+ *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Based on code from Kizzy by dead8309 (Vaibhav)
+ *  * https://github.com/dead8309/Kizzy
+ *  * SPDX-License-Identifier: GPL-3.0-only
+ *  ******************************************************************
  */
 
 package xyz.zyro.feature_experimental_rpc
@@ -101,7 +98,7 @@ class ExperimentalRpcViewmodel @Inject constructor(
 
                 is UiEvent.ToggleAppEnabled -> {
                     val current = _uiState.value.enabledApps[event.packageName] ?: false
-                    Prefs.saveExperimentalAppToPrefs(event.packageName)
+                    Prefs.toggleExperimentalApp(event.packageName)
                     _uiState.update { state ->
                         state.copy(
                             enabledApps = state.enabledApps.toMutableMap().apply {

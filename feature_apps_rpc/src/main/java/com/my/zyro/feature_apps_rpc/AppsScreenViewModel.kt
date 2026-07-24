@@ -1,13 +1,10 @@
 /*
- *
  *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * AppsScreenViewModel.kt is part of Zyro
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of zk
- *  *  *****************************************************************
- *
- *
+ *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Based on code from Kizzy by dead8309 (Vaibhav)
+ *  * https://github.com/dead8309/Kizzy
+ *  * SPDX-License-Identifier: GPL-3.0-only
+ *  ******************************************************************
  */
 
 package com.my.zyro.feature_apps_rpc
@@ -56,7 +53,7 @@ class AppsScreenViewModel @Inject constructor(
 
     fun updateAppEnabled(pkg: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            Prefs.saveToPrefs(pkg)
+            Prefs.toggleAppEnabled(pkg)
             _state.update { currentState ->
                 currentState.copy(
                     enabledApps = currentState.enabledApps.toMutableMap().apply {
