@@ -24,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,13 +47,6 @@ internal fun DiscordLoginButton(
 ) {
     val context = LocalContext.current
     var showVpnDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        val country = getUserCountry(context)
-        if (country in NON_ACCESSIBLE_COUNTRIES) {
-            showVpnDialog = true
-        }
-    }
 
     if (showVpnDialog) {
         AlertDialog(
@@ -84,7 +76,8 @@ internal fun DiscordLoginButton(
     if (enabled) {
         ElevatedButton(
             onClick = {
-                if (showVpnDialog) {
+                val country = getUserCountry(context)
+                if (country in NON_ACCESSIBLE_COUNTRIES) {
                     showVpnDialog = true
                 } else {
                     onClick()

@@ -63,6 +63,8 @@
     <string name="privacy_policy">Privacy Policy</string>
     <string name="privacy_policy_desc">Check the Privacy Policy</string>
     <string name="enable_console_rpc">Enable Console RPC</string>
+    <string name="select_game_first">Please select a game first</string>
+    <string name="select_platform">Select Platform</string>
     <string name="rpc_settings_button_configs">Button configuration for Media and AppDetection RPC</string>
     <string name="use_custom_buttons">Use Custom Buttons</string>
     <string name="use_custom_buttons_desc">Use Predefined buttons to show on Media and AppDetection RPC</string>

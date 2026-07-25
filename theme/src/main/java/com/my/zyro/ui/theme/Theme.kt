@@ -16,11 +16,20 @@ import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.kyant.monet.LocalTonalPalettes
+import com.kyant.monet.PaletteStyle
+import com.kyant.monet.TonalPalettes.Companion.toTonalPalettes
+import com.kyant.monet.dynamicColorScheme
+import com.my.zyro.preference.palettesMap
 
 /**
  * Original Zyro theme implementation
@@ -35,8 +44,8 @@ private tailrec fun Context.findWindow(): Window? =
     }
 
 /**
- * Creates an original Zyro ColorScheme independent from Kizzy
- * Uses custom Zyro color palette for dark theme
+ * Creates a Zyro ColorScheme using custom Zyro colors.
+ * Used by SwitchBar and other components that need a standalone scheme.
  */
 @Composable
 fun getZyroColorScheme(
@@ -50,7 +59,7 @@ fun getZyroColorScheme(
     val background = if (isHighContrastModeEnabled) ZyroBlack else ZyroGray900
     val surface = ZyroGray800
     val surfaceVariant = ZyroGray700
-    
+
     return ColorScheme(
         primary = primary,
         onPrimary = ZyroWhite,
@@ -87,36 +96,61 @@ fun getZyroColorScheme(
 /**
  * Main Zyro Theme Composable
  * Applies custom color scheme, typography, and system UI styling
+ * Supports Material You dynamic colors via isDynamicColorEnabled
+ * Uses Monet color science engine for seed-color-based themes
  */
 @Composable
 fun ZyroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isHighContrastModeEnabled: Boolean = false,
-    isDynamicColorEnabled: Boolean = false,  // Legacy parameter kept for compatibility
+    isDynamicColorEnabled: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = getZyroColorScheme(
-        darkTheme,
-        isHighContrastModeEnabled,
-    )
-    
-    val window = LocalView.current.context.findWindow()
+    val context = LocalContext.current
     val view = LocalView.current
+    val window = view.context.findWindow()
 
-    // Configure system UI appearance
-    window?.let {
-        WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+    if (isDynamicColorEnabled) {
+        // Material You dynamic colors (Android 12+)
+        val colorScheme = if (darkTheme) dynamicDarkColorScheme(context)
+                          else dynamicLightColorScheme(context)
+
+        window?.let {
+            WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+        }
+        rememberSystemUiController(window).apply {
+            setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
+            setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+        }
+
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            content = content
+        )
+    } else {
+        // Monet color science from user-selected seed color and palette style
+        val seedColor = Color(LocalSeedColor.current)
+        val paletteStyle = palettesMap[LocalPaletteStyleIndex.current] ?: PaletteStyle.Vibrant
+        val tonalPalettes = seedColor.toTonalPalettes(paletteStyle)
+
+        CompositionLocalProvider(LocalTonalPalettes provides tonalPalettes) {
+            val colorScheme = dynamicColorScheme(isLight = !darkTheme)
+
+            window?.let {
+                WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+            }
+            rememberSystemUiController(window).apply {
+                setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
+                setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+            }
+
+            MaterialTheme(
+                colorScheme = colorScheme,
+                typography = AppTypography,
+                content = content
+            )
+        }
     }
-
-    // Set system bar colors to match theme
-    rememberSystemUiController(window).apply {
-        setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
-        setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
 }
+

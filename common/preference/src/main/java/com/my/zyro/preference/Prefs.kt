@@ -23,7 +23,13 @@ import kotlin.time.Duration.Companion.hours
  */
 object Prefs {
     @PublishedApi
-    internal val kv = MMKV.defaultMMKV()
+    internal val kv: MMKV? by lazy {
+        try {
+            MMKV.defaultMMKV()
+        } catch (e: Exception) {
+            null
+        }
+    }
     
     // ============== Generic Key-Value Operations ==============
     
@@ -32,12 +38,13 @@ object Prefs {
      * Supports: String, Int, Boolean, Float, Long
      */
     operator fun set(key: String, value: Any?) {
+        val mmkv = kv ?: return
         when (value) {
-            is String? -> kv.encode(key, value)
-            is Int -> kv.encode(key, value)
-            is Boolean -> kv.encode(key, value)
-            is Float -> kv.encode(key, value)
-            is Long -> kv.encode(key, value)
+            is String? -> mmkv.encode(key, value)
+            is Int -> mmkv.encode(key, value)
+            is Boolean -> mmkv.encode(key, value)
+            is Float -> mmkv.encode(key, value)
+            is Long -> mmkv.encode(key, value)
             else -> throw UnsupportedOperationException("Type not supported: ${value?.javaClass?.simpleName}")
         }
     }
@@ -49,12 +56,21 @@ object Prefs {
         key: String,
         defaultValue: T? = null,
     ): T {
+        val mmkv = kv ?: return defaultValue as? T ?: when (T::class) {
+            String::class -> "" as T
+            Int::class -> -1 as T
+            Boolean::class -> false as T
+            Float::class -> -1f as T
+            Long::class -> -1L as T
+            else -> throw UnsupportedOperationException("Type not supported: ${T::class.simpleName}")
+        }
+
         return when (T::class) {
-            String::class -> kv.decodeString(key, defaultValue as String? ?: "") as T
-            Int::class -> kv.decodeInt(key, defaultValue as? Int ?: -1) as T
-            Boolean::class -> kv.decodeBool(key, defaultValue as? Boolean ?: false) as T
-            Float::class -> kv.decodeFloat(key, defaultValue as? Float ?: -1f) as T
-            Long::class -> kv.decodeLong(key, defaultValue as? Long ?: -1L) as T
+            String::class -> mmkv.decodeString(key, defaultValue as String? ?: "") as T
+            Int::class -> mmkv.decodeInt(key, defaultValue as? Int ?: -1) as T
+            Boolean::class -> mmkv.decodeBool(key, defaultValue as? Boolean ?: false) as T
+            Float::class -> mmkv.decodeFloat(key, defaultValue as? Float ?: -1f) as T
+            Long::class -> mmkv.decodeLong(key, defaultValue as? Long ?: -1L) as T
             else -> throw UnsupportedOperationException("Type not supported: ${T::class.simpleName}")
         }
     }
@@ -63,7 +79,7 @@ object Prefs {
      * Remove a specific key from preferences
      */
     fun remove(key: String) {
-        kv.removeValueForKey(key)
+        kv?.removeValueForKey(key)
     }
 
     // ============== Application Settings ==============

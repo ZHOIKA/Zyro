@@ -1,6 +1,6 @@
-/*
+﻿/*
  *  ******************************************************************
- *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Copyright (C) 2024 - Zyro Contributors
  *  * Based on code from Kizzy by dead8309 (Vaibhav)
  *  * https://github.com/dead8309/Kizzy
  *  * SPDX-License-Identifier: GPL-3.0-only
@@ -10,11 +10,14 @@
 package com.my.zyro.feature_console_rpc
 
 import android.content.Intent
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,9 +44,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,9 +62,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.my.zyro.domain.model.Game
 import com.my.zyro.domain.model.rpc.RpcConfig
+import com.my.zyro.feature_rpc_base.Constants.CONSOLE_PLATFORMS
+import com.my.zyro.feature_rpc_base.Constants.PlatformOption
 import com.my.zyro.feature_rpc_base.services.AppDetectionService
 import com.my.zyro.feature_rpc_base.services.CustomRpcService
-import com.my.zyro.feature_rpc_base.services.ExperimentalRpc
 import com.my.zyro.feature_rpc_base.services.MediaRpcService
 import com.my.zyro.preference.Prefs
 import com.my.zyro.resources.R
@@ -93,16 +98,60 @@ fun GamesScreen(
 
     val intent = remember { Intent(context, CustomRpcService::class.java) }
 
+    val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current
     val savedRpc = remember {
-        Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
+        if (isPreview) "" else Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
     }
     LaunchedEffect(savedRpc) {
         if (savedRpc.isNotEmpty() && !intent.hasExtra("RPC")) {
             intent.putExtra("RPC", savedRpc)
         }
     }
+
+    var showPlatformPicker by remember { mutableStateOf(false) }
+    var pendingGame by remember { mutableStateOf<Game?>(null) }
+
+    if (showPlatformPicker && pendingGame != null) {
+        val currentGame = pendingGame!!
+        PlatformPickerDialog(
+            game = currentGame,
+            onDismiss = {
+                showPlatformPicker = false
+                pendingGame = null
+            },
+            onPlatformSelected = { platform ->
+                showPlatformPicker = false
+                pendingGame = null
+                selected = currentGame.game_title
+                val string = Json.encodeToString(
+                    RpcConfig(
+                        name = platform.displayName,
+                        details = currentGame.game_title,
+                        timestampsStart = System.currentTimeMillis().toString(),
+                        status = "dnd",
+                        largeImg = currentGame.large_image ?: "",
+                        smallImg = platform.iconUrl,
+                        type = "0",
+                        platform = platform.displayName,
+                    )
+                )
+                intent.apply {
+                    removeExtra("RPC")
+                    putExtra("RPC", string)
+                }
+                if (isConsoleRpcRunning) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                }
+            }
+        )
+    }
+
     Scaffold(
-        Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
@@ -180,37 +229,28 @@ fun GamesScreen(
                             title = stringResource(id = R.string.enable_console_rpc),
                             isChecked = isConsoleRpcRunning
                         ) {
+                            val rpcString = intent.getStringExtra("RPC")
+                                ?: Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
+                            
+                            if (rpcString.isEmpty() && !isConsoleRpcRunning) {
+                                Toast.makeText(context, context.getString(R.string.select_game_first), Toast.LENGTH_SHORT).show()
+                                return@SwitchBar
+                            }
+
                             isConsoleRpcRunning = !isConsoleRpcRunning
                             when (isConsoleRpcRunning) {
                                 true -> {
-                                    val rpcString = intent.getStringExtra("RPC")
-                                        ?: Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
-                                    if (rpcString.isNotEmpty()) {
-                                        Prefs[Prefs.LAST_RUN_CONSOLE_RPC] = rpcString
-                                        intent.removeExtra("RPC")
-                                        intent.putExtra("RPC", rpcString)
-                                        context.stopService(
-                                            Intent(
-                                                context,
-                                                AppDetectionService::class.java
-                                            )
-                                        )
-                                        context.stopService(
-                                            Intent(
-                                                context,
-                                                MediaRpcService::class.java
-                                            )
-                                        )
-                                        context.stopService(
-                                            Intent(
-                                                context,
-                                                ExperimentalRpc::class.java
-                                            )
-                                        )
+                                    Prefs[Prefs.LAST_RUN_CONSOLE_RPC] = rpcString
+                                    intent.removeExtra("RPC")
+                                    intent.putExtra("RPC", rpcString)
+                                    context.stopService(Intent(context, AppDetectionService::class.java))
+                                    context.stopService(Intent(context, MediaRpcService::class.java))
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        context.startForegroundService(intent)
+                                    } else {
                                         context.startService(intent)
                                     }
                                 }
-
                                 false -> context.stopService(
                                     Intent(
                                         context,
@@ -225,22 +265,8 @@ fun GamesScreen(
                                     game = game,
                                     selected = game.game_title == selected
                                 ) { info ->
-                                    selected = game.game_title
-                                    val string = Json.encodeToString(
-                                        RpcConfig(
-                                            name = info.platform,
-                                            details = info.game_title,
-                                            timestampsStart = System.currentTimeMillis().toString(),
-                                            status = "dnd",
-                                            largeImg = info.large_image ?: "",
-                                            smallImg = info.small_image,
-                                            type = "0",
-                                        )
-                                    )
-                                    intent.apply {
-                                        removeExtra("RPC")
-                                        putExtra("RPC", string)
-                                    }
+                                    pendingGame = info
+                                    showPlatformPicker = true
                                 }
                             }
                         }
@@ -250,7 +276,6 @@ fun GamesScreen(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SingleChoiceGameItem(
@@ -335,7 +360,7 @@ private val fakeGames = buildList {
                 platform = "nintendo",
                 small_image = "",
                 large_image = "",
-                game_title = "Assassin's creed:"
+                game_title = "Assassin`s creed:"
             )
         )
     }
@@ -409,5 +434,47 @@ fun GamesScreenPreview6() {
         serviceEnabled = true
     )
 }
-
-
+@Composable
+private fun PlatformPickerDialog(
+    game: Game,
+    onDismiss: () -> Unit,
+    onPlatformSelected: (PlatformOption) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Select Platform for ${game.game_title}")
+        },
+        text = {
+            Column {
+                CONSOLE_PLATFORMS.forEach { platform ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onPlatformSelected(platform) }
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = platform.iconUrl,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            contentDescription = platform.displayName,
+                        )
+                        Text(
+                            text = platform.displayName,
+                            modifier = Modifier.padding(start = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}

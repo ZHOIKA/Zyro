@@ -24,7 +24,6 @@ import com.my.zyro.preference.Prefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -44,19 +43,23 @@ class UserViewModel @Inject constructor(
         getUserUseCase(Prefs[Prefs.USER_ID,""]).onEach { result ->
             when(result){
                 is Resource.Success -> {
-                    _state.value = UserState.LoadingCompleted(
-                        user = result.data?.copy(
-                            bio = Prefs[Prefs.USER_BIO],
-                            nitro = Prefs[Prefs.USER_NITRO]
-                        )
+                    val userWithOverrides = result.data?.copy(
+                        bio = Prefs[Prefs.USER_BIO],
+                        nitro = Prefs[Prefs.USER_NITRO]
                     )
-                    Prefs[Prefs.USER_DATA] = Json.encodeToString(result.data)
+                    _state.value = UserState.LoadingCompleted(
+                        user = userWithOverrides
+                    )
+                    Prefs[Prefs.USER_DATA] = Json.encodeToString(userWithOverrides)
                 }
                 is Resource.Error -> {
                     val user = Json.decodeFromString<User>(Prefs[Prefs.USER_DATA,"{}"])
                     _state.value = UserState.Error(
                         error = result.message ?: "An unexpected error occurred",
-                        user = user
+                        user = user.copy(
+                            bio = Prefs[Prefs.USER_BIO],
+                            nitro = Prefs[Prefs.USER_NITRO]
+                        )
                     )
                 }
                 is Resource.Loading -> {

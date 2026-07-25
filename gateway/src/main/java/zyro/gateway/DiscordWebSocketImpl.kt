@@ -63,6 +63,8 @@ open class DiscordWebSocketImpl(
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.Default
 
+    private var connectionJob: Job? = null
+
     // ============== Connection Lifecycle ==============
 
     /**
@@ -70,7 +72,13 @@ open class DiscordWebSocketImpl(
      * Handles initial connection and message processing loop
      */
     override suspend fun connect() {
-        launch {
+        if (isWebSocketConnected()) {
+            logger.i("GatewayImpl", "WebSocket already connected, skipping connect")
+            return
+        }
+        
+        connectionJob?.cancel()
+        connectionJob = launch {
             try {
                 logger.i("GatewayImpl", "Initiating WebSocket connection")
                 

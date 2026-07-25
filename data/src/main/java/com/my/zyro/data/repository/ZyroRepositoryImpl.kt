@@ -37,54 +37,46 @@ class ZyroRepositoryImpl @Inject constructor(
 
 
     override suspend fun getImage(url: String): String? {
-
-        return if (Prefs[Prefs.USE_IMGUR, false]) {
-
-            imgurApi
-                .getImage(
-                    url,
-                    Prefs[Prefs.TOKEN]
-                )
+        // Try Discord external-assets API first (bypasses broken backend redirect)
+        val token = Prefs[Prefs.TOKEN, ""]
+        if (token.isNotBlank()) {
+            val result = imgurApi
+                .getImage(url, token)
                 .getOrNull()
                 ?.toExternalAsset()
-
-        } else {
-
-            api.getImage(url)
-                .getOrNull()
-                ?.toAttachmentAsset()
-
+            if (result != null) return result
         }
+
+        // Fall back to backend API
+        return api.getImage(url)
+            .getOrNull()
+            ?.toAttachmentAsset()
 
     }
 
 
 
     override suspend fun uploadImage(file: File): String? {
+        // Try Imgur + Discord external-assets path first
+        val imgurResult = imgurApi
+            .uploadImage(
+                file,
+                Prefs[
+                    Prefs.IMGUR_CLIENT_ID,
+                    Constants.IMGUR_CLIENT_ID
+                ]
+            )
+            .getOrNull()
+            ?.toImageURL()
+            ?.let {
+                this.getImage(it)
+            }
+        if (imgurResult != null) return imgurResult
 
-        return if (Prefs[Prefs.USE_IMGUR, false]) {
-
-            imgurApi
-                .uploadImage(
-                    file,
-                    Prefs[
-                        Prefs.IMGUR_CLIENT_ID,
-                        Constants.IMGUR_CLIENT_ID
-                    ]
-                )
-                .getOrNull()
-                ?.toImageURL()
-                ?.let {
-                    this.getImage(it)
-                }
-
-        } else {
-
-            api.uploadImage(file)
-                .getOrNull()
-                ?.toAttachmentAsset()
-
-        }
+        // Fall back to backend API
+        return api.uploadImage(file)
+            .getOrNull()
+            ?.toAttachmentAsset()
 
     }
 

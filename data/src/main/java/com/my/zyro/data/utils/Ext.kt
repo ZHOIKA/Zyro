@@ -1,6 +1,6 @@
 /*
  *  ******************************************************************
- *  * Copyright (C) 2024 — Zyro Contributors
+ *  * Copyright (C) 2024 ????\" Zyro Contributors
  *  * Based on code from Kizzy by dead8309 (Vaibhav)
  *  * https://github.com/dead8309/Kizzy
  *  * SPDX-License-Identifier: GPL-3.0-only
@@ -114,13 +114,19 @@ fun ApplicationInfo.toBitmap(context: Context): Bitmap? {
     }
     return bitmap
 }
+
 fun String.toRpcImage(): RpcImage? {
-    return if (this.isBlank())
-        null
-    else if (this.startsWith("attachments") || this.startsWith("external"))
-        RpcImage.DiscordImage(this)
-    else
-        RpcImage.ExternalImage(this)
+    return when {
+        this.isBlank() -> null
+        this.startsWith("attachments") || this.startsWith("external") ->
+            RpcImage.DiscordImage(this)
+        this.contains("media.discordapp.net/") ->
+            RpcImage.DiscordImage(this.substringAfter("media.discordapp.net/"))
+        this.contains("discord.com/") ->
+            RpcImage.DiscordImage(this.substringAfter("discord.com/"))
+        else ->
+            RpcImage.ExternalImage(this)
+    }
 }
 
 fun Context.getFileName(uri: Uri): String = "temp_file.${getFileExtension(this, uri)}"
