@@ -21,6 +21,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
+import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -37,8 +38,10 @@ open class DiscordWebSocketImpl(
     
     private companion object {
         const val DISCORD_GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json"
-        const val RECONNECT_DELAY_MS = 200L
+        const val RECONNECT_BASE_DELAY_MS = 1000L
+        const val RECONNECT_MAX_DELAY_MS = 60000L
         const val SOCKET_CHECK_INTERVAL_MS = 10L
+        const val MAX_RECONNECT_ATTEMPTS = 5
     }
     
     // ============== Internal State ==============
@@ -50,6 +53,7 @@ open class DiscordWebSocketImpl(
     private var heartbeatIntervalMs = 0L
     private var activeHeartbeatJob: Job? = null
     private var isConnectedToAccount = false
+    private var reconnectAttempts = 0
     
     private val httpClient: HttpClient = HttpClient {
         install(WebSockets)
@@ -85,6 +89,9 @@ open class DiscordWebSocketImpl(
                 val targetUrl = resumeUrl ?: DISCORD_GATEWAY_URL
                 wsSession = httpClient.webSocketSession(targetUrl)
 
+                // Reset reconnect counter on successful connection
+                reconnectAttempts = 0
+
                 // Main message processing loop
                 wsSession!!.incoming.receiveAsFlow().collect { frame ->
                     when (frame) {
@@ -98,13 +105,14 @@ open class DiscordWebSocketImpl(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 logger.e("GatewayImpl", "Connection error: ${e.message ?: "Unknown"}")
-                close()
+                scheduleReconnection()
             }
         }
     }
 
     /**
      * Handles graceful connection closure and reconnection logic
+     * Reconnects on most close codes except fatal ones (4004, 4005, 4006, 4007)
      */
     private suspend fun processConnectionClosed() {
         activeHeartbeatJob?.cancel()
@@ -112,18 +120,51 @@ open class DiscordWebSocketImpl(
         
         val closeReason = wsSession?.closeReason?.await()
         val closeCode = closeReason?.code?.toInt()
-        val canReconnect = closeCode == 4000
         
         logger.w(
             "GatewayImpl",
-            "Connection closed. Code: $closeCode, Reason: ${closeReason?.message}, Reconnect: $canReconnect"
+            "Connection closed. Code: $closeCode, Reason: ${closeReason?.message}"
         )
         
-        if (canReconnect) {
-            delay(RECONNECT_DELAY_MS.milliseconds)
-            connect()
+        // Codes that should not attempt reconnection
+        val fatalCodes = setOf(4004, 4005, 4006, 4007)
+        
+        if (closeCode !in fatalCodes && closeCode != null) {
+            scheduleReconnection()
         } else {
+            if (closeCode in fatalCodes) {
+                logger.e("GatewayImpl", "Fatal close code $closeCode, clearing session data")
+                currentSessionId = null
+                resumeUrl = null
+                lastSequenceNumber = 0
+            }
             close()
+        }
+    }
+
+    /**
+     * Schedules reconnection with exponential backoff and jitter
+     */
+    private fun scheduleReconnection() {
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            logger.e("GatewayImpl", "Max reconnect attempts ($MAX_RECONNECT_ATTEMPTS) reached, giving up")
+            close()
+            return
+        }
+
+        reconnectAttempts++
+        
+        // Exponential backoff with jitter
+        val baseDelay = RECONNECT_BASE_DELAY_MS * (1 shl (reconnectAttempts - 1))
+        val delayMs = minOf(baseDelay, RECONNECT_MAX_DELAY_MS)
+        val jitter = Random.nextLong(0, delayMs / 2)
+        val totalDelay = delayMs + jitter
+
+        logger.i("GatewayImpl", "Scheduling reconnect attempt $reconnectAttempts/$MAX_RECONNECT_ATTEMPTS in ${totalDelay}ms")
+        
+        launch {
+            delay(totalDelay.milliseconds)
+            connect()
         }
     }
 
@@ -162,7 +203,7 @@ open class DiscordWebSocketImpl(
      * Handles DISPATCH events (READY, RESUMED, etc.)
      */
     private fun handleDispatchEvent(payloadJson: String, payload: Payload) {
-        when (payload.t.toString()) {
+        when (payload.t) {
             "READY" -> {
                 val readyData = decodePayloadData<Ready>(payloadJson) ?: return
                 currentSessionId = readyData.sessionId
@@ -170,10 +211,12 @@ open class DiscordWebSocketImpl(
                 logger.i("GatewayImpl", "Session ready. Resume URL: $resumeUrl")
                 logger.i("GatewayImpl", "Session ID: $currentSessionId")
                 isConnectedToAccount = true
+                reconnectAttempts = 0 // Reset on successful ready
             }
             "RESUMED" -> {
                 logger.i("GatewayImpl", "Session successfully resumed")
                 isConnectedToAccount = true
+                reconnectAttempts = 0 // Reset on successful resume
             }
             else -> {} // Other dispatch events ignored
         }
@@ -192,6 +235,8 @@ open class DiscordWebSocketImpl(
     private suspend fun handleSessionInvalid() {
         logger.i("GatewayImpl", "Invalid session detected, re-identifying")
         delay(150)
+        lastSequenceNumber = 0
+        currentSessionId = null
         sendIdentifyPayload()
     }
 
@@ -199,6 +244,11 @@ open class DiscordWebSocketImpl(
      * Handles HELLO opcode to extract heartbeat interval and proceed with auth flow
      */
     private suspend fun handleHelloPayload(payloadJson: String) {
+        // Extract and set heartbeat interval
+        val heartbeatData = decodePayloadData<Heartbeat>(payloadJson)
+        heartbeatIntervalMs = heartbeatData?.heartbeatInterval ?: return
+        logger.i("GatewayImpl", "Heartbeat interval set: ${heartbeatIntervalMs}ms")
+        
         // Determine if we should resume or identify
         val shouldResume = lastSequenceNumber > 0 && !currentSessionId.isNullOrBlank()
         
@@ -208,11 +258,6 @@ open class DiscordWebSocketImpl(
             sendIdentifyPayload()
         }
 
-        // Extract and set heartbeat interval
-        val heartbeatData = decodePayloadData<Heartbeat>(payloadJson)
-        heartbeatIntervalMs = heartbeatData?.heartbeatInterval ?: return
-        logger.i("GatewayImpl", "Heartbeat interval set: ${heartbeatIntervalMs}ms")
-        
         startHeartbeatLoop(heartbeatIntervalMs)
     }
 
@@ -236,7 +281,7 @@ open class DiscordWebSocketImpl(
      * Sends heartbeat acknowledgment with current sequence
      */
     private suspend fun sendHeartbeatAck() {
-        logger.i("GatewayImpl", "Sending heartbeat ACK with seq: $lastSequenceNumber")
+        logger.d("GatewayImpl", "Sending heartbeat ACK with seq: $lastSequenceNumber")
         transmitPayload(
             opcode = HEARTBEAT,
             data = if (lastSequenceNumber == 0) "null" else lastSequenceNumber.toString()
@@ -300,14 +345,17 @@ open class DiscordWebSocketImpl(
     // ============== Heartbeat Management ==============
 
     /**
-     * Starts periodic heartbeat job
+     * Starts periodic heartbeat job with jitter (± random factor)
+     * Discord recommends sending heartbeats at a slight random offset
      */
     private fun startHeartbeatLoop(intervalMs: Long) {
         activeHeartbeatJob?.cancel()
         activeHeartbeatJob = launch {
             while (isActive) {
                 sendHeartbeatAck()
-                delay(intervalMs)
+                // Apply jitter: sleep between interval*0.9 and interval*1.1
+                val jitter = (intervalMs * 0.1 * (Random.nextDouble() * 2 - 1)).toLong()
+                delay((intervalMs + jitter).coerceAtLeast(1000L))
             }
         }
     }
@@ -359,6 +407,7 @@ open class DiscordWebSocketImpl(
         resumeUrl = null
         currentSessionId = null
         isConnectedToAccount = false
+        reconnectAttempts = 0
         
         runBlocking {
             wsSession?.close()
@@ -366,3 +415,4 @@ open class DiscordWebSocketImpl(
         }
     }
 }
+

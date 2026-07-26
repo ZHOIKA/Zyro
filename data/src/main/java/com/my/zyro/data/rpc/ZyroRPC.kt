@@ -15,6 +15,9 @@ import com.my.zyro.preference.Prefs
 import com.my.zyro.preference.Prefs.CUSTOM_ACTIVITY_TYPE
 import zyro.gateway.DiscordWebSocket
 import zyro.gateway.entities.presence.Activity
+import zyro.gateway.entities.presence.ActivityEmoji
+import zyro.gateway.entities.presence.ActivityFlags
+import zyro.gateway.entities.presence.ActivitySecrets
 import zyro.gateway.entities.presence.Assets
 import zyro.gateway.entities.presence.Metadata
 import zyro.gateway.entities.presence.Party
@@ -47,6 +50,15 @@ class ZyroRPC(
     private var buttonUrl = ArrayList<String?>()
     private var url: String? = null
 
+    // ============== New RPC Features ==============
+
+    private var activityFlags: Int? = null
+    private var secrets: ActivitySecrets? = null
+    private var emoji: ActivityEmoji? = null
+    private var supportedPlatforms: List<String>? = null
+    private var syncId: String? = null
+    private var sessionId: String? = null
+
     fun closeRPC() {
         discordWebSocket.close()
         resetState()
@@ -73,6 +85,12 @@ class ZyroRPC(
         buttons.clear()
         buttonUrl.clear()
         url = null
+        activityFlags = null
+        secrets = null
+        emoji = null
+        supportedPlatforms = null
+        syncId = null
+        sessionId = null
     }
 
     /**
@@ -82,11 +100,6 @@ class ZyroRPC(
      * source: [#token-structure](https://gist.github.com/aydynx/5d29e903417354fd25641b98efc9d437#token-structure)
      */
     private fun isUserTokenValid(): Boolean {
-        /*val regex = Regex(
-            "[a-z\\d]{24}\\.[a-z\\d]{6}\\.([\\w-]{107}|[\\w-]{38}|[\\w-]{27})|mfa\\.[\\w-]{84}",
-            RegexOption.IGNORE_CASE
-        )
-        return regex.matches(token)*/
         return token.isNotBlank()
     }
 
@@ -134,7 +147,7 @@ class ZyroRPC(
         if (current != null && max != null) {
             this.party = Party(
                 id = "zyro",
-                size = arrayOf(current, max)
+                size = listOf(current, max)
             )
         }
         return this
@@ -143,8 +156,7 @@ class ZyroRPC(
     /**
      * Large image on rpc
      * How to get Image ?
-     * Upload image to any discord chat and copy its media link it should look like "https://media.discordapp.net/attachments/90202992002/xyz.png" now just use the image link from attachments part
-     * so it would look like: .setLargeImage("attachments/90202992002/xyz.png")
+     * Upload image to any discord chat and copy its media link
      * @param large_image
      * @return
      */
@@ -194,16 +206,27 @@ class ZyroRPC(
      * 1: Streaming
      * 2: Listening
      * 3: Watching
+     * 4: Custom Status
      * 5: Competing
+     * 6: Hang Status
      *
      * @param type
      * @return
      */
-
     fun setType(type: Int): ZyroRPC {
-        if (type in 0..5)
+        if (type in 0..6)
             this.type = type
         else this.type = 0
+        return this
+    }
+
+    /**
+     * Custom Application ID for RPC
+     * @param applicationId The custom application ID
+     * @return
+     */
+    fun setApplicationId(applicationId: String): ZyroRPC {
+        this.applicationIdNumber = applicationId
         return this
     }
 
@@ -224,6 +247,66 @@ class ZyroRPC(
      */
     fun setPlatform(platform: String?): ZyroRPC {
         this.platform = platform
+        return this
+    }
+
+    /**
+     * Activity Flags for RPC
+     * Use ActivityFlags constants: INSTANCE, JOIN, SPECTATE, SYNC, PLAY, etc.
+     * Example: setFlags(ActivityFlags.INSTANCE or ActivityFlags.JOIN)
+     *
+     * @param flags Bitwise OR of ActivityFlags constants
+     * @return
+     */
+    fun setFlags(flags: Int?): ZyroRPC {
+        this.activityFlags = flags
+        return this
+    }
+
+    /**
+     * Activity Secrets for Rich Presence (join/spectate/match)
+     * Enables game invite functionality on Discord
+     *
+     * @param secrets ActivitySecrets object
+     * @return
+     */
+    fun setSecrets(secrets: ActivitySecrets?): ZyroRPC {
+        this.secrets = secrets
+        return this
+    }
+
+    /**
+     * Activity Emoji for Custom Status (Activity Type 4)
+     *
+     * @param emoji ActivityEmoji object
+     * @return
+     */
+    fun setEmoji(emoji: ActivityEmoji?): ZyroRPC {
+        this.emoji = emoji
+        return this
+    }
+
+    /**
+     * Supported platforms for the activity
+     * Controls where join buttons appear
+     * Example: listOf("web", "ios", "android")
+     *
+     * @param platforms List of supported platforms
+     * @return
+     */
+    fun setSupportedPlatforms(platforms: List<String>?): ZyroRPC {
+        this.supportedPlatforms = platforms
+        return this
+    }
+
+    /**
+     * Sync ID for Spotify integration
+     *
+     * @param syncId Spotify song/track ID
+     * @return
+     */
+    fun setSyncId(syncId: String?): ZyroRPC {
+        this.syncId = syncId
         return this
     }
 
@@ -280,6 +363,7 @@ class ZyroRPC(
         setIndexedField(buttonUrl, 1, url)
         return this
     }
+
     /**
      * Streaming Url
      * @param url The streaming type currently only supports Twitch and YouTube.
@@ -324,15 +408,22 @@ class ZyroRPC(
                     buttons = cleanedButtons.takeIf { it.isNotEmpty() },
                     metadata = Metadata(buttonUrls = cleanedButtonUrls).takeIf { cleanedButtonUrls.isNotEmpty() },
                     applicationId = applicationIdNumber.takeIf { it.isNotEmpty() } ?: Constants.APPLICATION_ID,
-                    url = url
+                    url = url,
+                    flags = activityFlags,
+                    secrets = secrets,
+                    emoji = emoji,
+                    supportedPlatforms = supportedPlatforms,
+                    syncId = syncId,
+                    sessionId = sessionId
                 )
             ),
             afk = true,
-            since = startTimestamps.takeIf { startTimestamps != null }?: System.currentTimeMillis(),
+            since = startTimestamps.takeIf { startTimestamps != null } ?: System.currentTimeMillis(),
             status = status
         )
         connectToWebSocket()
     }
+
     private suspend fun connectToWebSocket() {
         if (!isUserTokenValid())
             logger.e(
@@ -352,7 +443,7 @@ class ZyroRPC(
         if (commonRpc.time != null)
             Timestamps(end = commonRpc.time.end, start = commonRpc.time.start).also { time = it }
         party = if (commonRpc.partyCurrentSize != null && commonRpc.partyMaxSize != null) {
-            Party(id = "zyro", size = arrayOf(commonRpc.partyCurrentSize, commonRpc.partyMaxSize))
+            Party(id = "zyro", size = listOf(commonRpc.partyCurrentSize, commonRpc.partyMaxSize))
         } else {
             null
         }
@@ -375,8 +466,13 @@ class ZyroRPC(
                         party = party.takeIf { party != null },
                         buttons = cleanedButtons.takeIf { it.isNotEmpty() },
                         metadata = Metadata(buttonUrls = cleanedButtonUrls).takeIf { cleanedButtonUrls.isNotEmpty() },
-                        applicationId = applicationIdNumber.takeIf { it.isNotEmpty() } ?: Constants.APPLICATION_ID
-
+                        applicationId = applicationIdNumber.takeIf { it.isNotEmpty() } ?: Constants.APPLICATION_ID,
+                        flags = activityFlags,
+                        secrets = secrets,
+                        emoji = emoji,
+                        supportedPlatforms = supportedPlatforms,
+                        syncId = syncId,
+                        sessionId = sessionId
                     )
                 ),
                 afk = true,
@@ -386,3 +482,4 @@ class ZyroRPC(
         )
     }
 }
+
