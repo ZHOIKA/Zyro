@@ -1,25 +1,50 @@
-# Plano de Implementação: Correção do Tema AMOLED (High Contrast)
+# Plano de Implementação: Correções de Tema AMOLED e Console RPC
 
-O tema AMOLED (High Contrast) não está sendo aplicado corretamente porque a variável `isHighContrastModeEnabled` é ignorada na função principal `ZyroTheme`. Este plano visa corrigir a implementação para garantir que o fundo e as superfícies fiquem pretas puras quando o modo estiver ativado.
+Este plano aborda dois problemas: o tema AMOLED que não aplica o fundo preto puro e o Console RPC que não exibe as informações corretamente no Discord.
 
 ## Mudanças Propostas
 
-### Tema (UI Theme)
+### 1. Correção do Tema AMOLED
 
 #### [MODIFY] [Color.kt](file:///C:/Users/20241INF0014/StudioProjects/Zyro/theme/src/main/java/com/my/zyro/ui/theme/Color.kt)
-*   Alterar `ZyroBlack` de `0xFF0F0F0F` para `0xFF000000` para garantir o efeito AMOLED real (pixels desligados).
+*   Alterar `ZyroBlack` para `0xFF000000` (Preto Puro).
 
 #### [MODIFY] [Theme.kt](file:///C:/Users/20241INF0014/StudioProjects/Zyro/theme/src/main/java/com/my/zyro/ui/theme/Theme.kt)
-*   Refatorar a função `ZyroTheme` para aplicar a lógica de contraste.
-*   Criar uma lógica que modifica o `ColorScheme` (seja o dinâmico do Android ou o baseado no Monet) para usar `Color.Black` no fundo e nas superfícies quando `darkTheme && isHighContrastModeEnabled` forem verdadeiros.
-*   Garantir que o `SystemUiController` atualize a cor da barra de navegação com o novo fundo preto.
+*   Atualizar `ZyroTheme` para forçar o fundo e as superfícies para preto puro quando `isHighContrastModeEnabled` estiver ativado no modo escuro.
+*   Garantir que as cores dinâmicas (Material You) também respeitem o modo AMOLED.
+
+---
+
+### 2. Correção do Console RPC
+
+O Console RPC não está funcionando como esperado devido a metadados incompletos e falta de mapeamento de plataforma para o Discord.
+
+#### [MODIFY] [Constants.kt](file:///C:/Users/20241INF0014/StudioProjects/Zyro/feature_rpc_base/src/main/java/com/my/zyro/feature_rpc_base/Constants.kt)
+*   Adicionar campo `platformId` à data class `PlatformOption`.
+*   Atualizar a lista `CONSOLE_PLATFORMS` com os IDs reconhecidos pelo Discord spoofing (`ps5`, `ps4`, `xbox`, `switch`, `pc`, `mobile`).
+
+#### [MODIFY] [GamesScreen.kt](file:///C:/Users/20241INF0014/StudioProjects/Zyro/feature_console_rpc/src/main/java/com/my/zyro/feature_console_rpc/GamesScreen.kt)
+*   Melhorar a construção do `RpcConfig`:
+    *   Usar `platform.platformId` para o campo `platform` do RPC.
+    *   Definir `smallText` com o nome da plataforma.
+    *   Definir `state` como "Playing" (ou similar) para preencher o perfil do Discord.
+*   Persistir o jogo selecionado no `Prefs` para que a UI reflita o estado atual ao reabrir a tela.
+
+#### [MODIFY] [CustomRpcService.kt](file:///C:/Users/20241INF0014/StudioProjects/Zyro/feature_rpc_base/src/main/java/com/my/zyro/feature_rpc_base/services/CustomRpcService.kt)
+*   Garantir que a limpeza de estado (`resetState`) ocorra corretamente antes de cada nova transmissão.
+*   Verificar se o `applicationId` customizado está sendo aplicado corretamente.
 
 ## Plano de Verificação
 
-### Verificação Manual
-1. Abrir as configurações do App.
-2. Ir para as configurações de Tema Escuro.
-3. Ativar o Tema Escuro.
-4. Ativar a opção "AMOLED".
-5. Verificar se o fundo do aplicativo muda para preto puro (#000000).
-6. Verificar se a barra de navegação do sistema também fica preta.
+### Verificação Manual (AMOLED)
+1. Ativar modo escuro e AMOLED nas configurações.
+2. Validar se o fundo é `#000000`.
+
+### Verificação Manual (Console RPC)
+1. Selecionar um jogo (ex: "Elden Ring") e uma plataforma (ex: "PlayStation 5").
+2. Ativar o RPC.
+3. Verificar no Discord se aparece:
+    *   Nome: **PlayStation 5**
+    *   Detalhes: **Elden Ring**
+    *   Estado: **Playing**
+    *   Ícones: Logo do PS5 (pequeno) e arte do jogo (grande).

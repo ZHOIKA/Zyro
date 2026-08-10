@@ -146,6 +146,13 @@ fun ZyroTheme(
                         platform = platform.platformId, // Usar platformId aqui
                     )
                 )
-                // ... resto do código ...
-            }
+### Arquivo: [CustomRpcService.kt](file:///C:/Users/20241INF0014/StudioProjects/Zyro/feature_rpc_base/src/main/java/com/my/zyro/feature_rpc_base/services/CustomRpcService.kt)
+**Adicionar `resetState()` no início do `onStartCommand` para limpar estados residuais:**
+
+```kotlin
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Reset state from previous runs
+        zyroRPC.resetState()
+
+        // ... resto do código existente ...
 ```
