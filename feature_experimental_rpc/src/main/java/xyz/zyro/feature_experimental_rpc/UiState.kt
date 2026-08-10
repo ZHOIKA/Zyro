@@ -22,8 +22,8 @@ data class UiState(
     val templateDetails: String = "",
     val templateState: String = "",
     val installedApps: List<AppsInfo> = emptyList(),
-    val enabledApps: Map<String, Boolean> = emptyMap(), // pkg -> enabled
-    val appActivityTypes: Map<String, Int> = emptyMap(), // pkg -> activity type
+    val enabledApps: Map<String, Boolean> = emptyMap(),
+    val appActivityTypes: Map<String, Int> = emptyMap(),
     val isAppsLoading: Boolean = false,
     val showCoverArt: Boolean = true,
     val showAppIcon: Boolean = false,

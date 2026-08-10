@@ -26,7 +26,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -79,6 +78,7 @@ import com.my.zyro.resources.R
 import com.my.zyro.ui.components.ChipSection
 import com.my.zyro.ui.components.ParticleEffect
 import com.my.zyro.ui.components.UpdateDialog
+import com.my.zyro.ui.components.ZyroIconButton
 
 import kotlinx.coroutines.launch
 
@@ -254,20 +254,15 @@ fun Home(
 
                     navigationIcon = {
 
-                        IconButton(
+                        ZyroIconButton(
+                            icon = Icons.Outlined.Menu,
+                            contentDescription = "Menu",
                             onClick = {
                                 scope.launch {
                                     drawerState.open()
                                 }
                             }
-                        ) {
-
-                            Icon(
-                                Icons.Outlined.Menu,
-                                contentDescription = "Menu"
-                            )
-
-                        }
+                        )
 
                     },
 
@@ -295,29 +290,24 @@ fun Home(
 
                         ) {
 
-                            Icon(
-                                imageVector =
-                                    Icons.Outlined.Update,
+                            ZyroIconButton(
+                                icon = Icons.Outlined.Update,
+                                contentDescription = "Update",
+                                onClick = {
 
-                                contentDescription =
-                                    "Update",
+                                    Toast.makeText(
+                                        ctx,
+                                        ctx.getString(
+                                            R.string.update_check_for_update
+                                        ),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
 
-                                modifier =
-                                    Modifier.clickable {
+                                    checkForUpdates()
 
-                                        Toast.makeText(
-                                            ctx,
-                                            ctx.getString(
-                                                R.string.update_check_for_update
-                                            ),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    showUpdateDialog = true
 
-                                        checkForUpdates()
-
-                                        showUpdateDialog = true
-
-                                    }
+                                }
                             )
 
                         }
@@ -328,7 +318,7 @@ fun Home(
                         )
 
 
-                        IconButton(
+                        ZyroIconButton(
                             onClick = navigateToProfile
                         ) {
 

@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
 
@@ -232,22 +231,22 @@ fun UpdateDialog(
 
             when {
                 errorMessage != null -> {
-                    TextButton(onClick = onUpdateNow) {
+                    ZyroButton(onClick = onUpdateNow) {
                         Text("Tentar novamente")
                     }
                 }
                 isReady -> {
-                    TextButton(onClick = onInstallNow) {
+                    ZyroButton(onClick = onInstallNow) {
                         Text("Instalar")
                     }
                 }
                 isDownloading -> {
-                    TextButton(enabled = false, onClick = {}) {
+                    ZyroButton(enabled = false, onClick = {}) {
                         Text("Baixando...")
                     }
                 }
                 else -> {
-                    TextButton(
+                    ZyroButton(
                         onClick = onUpdateNow,
                         enabled = !isDownloading && !isInstalling
                     ) {
@@ -264,17 +263,17 @@ fun UpdateDialog(
 
             when {
                 errorMessage != null -> {
-                    TextButton(onClick = onDismissRequest) {
+                    ZyroTextButton(onClick = onDismissRequest) {
                         Text("Fechar")
                     }
                 }
                 isDownloading -> {
-                    TextButton(onClick = onCancelDownload) {
+                    ZyroTextButton(onClick = onCancelDownload) {
                         Text("Cancelar")
                     }
                 }
                 else -> {
-                    TextButton(
+                    ZyroTextButton(
                         onClick = onDismissRequest,
                         enabled = !isInstalling
                     ) {

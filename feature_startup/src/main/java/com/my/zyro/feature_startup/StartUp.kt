@@ -35,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -49,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.my.zyro.preference.Prefs
@@ -57,6 +55,8 @@ import com.my.zyro.preference.getLanguageDesc
 import com.my.zyro.preference.languages
 import com.my.zyro.resources.R
 import com.my.zyro.ui.components.Subtitle
+import com.my.zyro.ui.components.ZyroButton
+import com.my.zyro.ui.components.ZyroTextButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -204,28 +204,32 @@ fun StartUp(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(70.dp)
+                    .height(80.dp)
                     .align(Alignment.BottomCenter)
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(end = 15.dp),
+                    .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = { navigateToHome() }, enabled = usageAccessStatus.value && mediaControlStatus.value) {
-                    val text =
-                        if (usageAccessStatus.value && mediaControlStatus.value) stringResource(R.string.start_app_now) else stringResource(R.string.skip)
-                    val style =
-                        if (usageAccessStatus.value && mediaControlStatus.value) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 20.sp
+                if (usageAccessStatus.value && mediaControlStatus.value) {
+                    ZyroButton(
+                        onClick = { navigateToHome() }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.start_app_now),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
-                    val color =
-                        if (usageAccessStatus.value && mediaControlStatus.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSecondaryContainer
-                    Text(
-                        text = text,
-                        maxLines = 1,
-                        style = style.copy(fontWeight = FontWeight.SemiBold),
-                        color = color
-                    )
+                    }
+                } else {
+                    ZyroTextButton(
+                        onClick = { navigateToHome() }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.skip),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
             }
         }

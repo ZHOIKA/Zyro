@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
 
-    <!-- Atualização automática de APK -->
+
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
 
@@ -64,7 +64,7 @@
 
 
 
-        <!-- Permite instalar APK baixado -->
+
         <provider
 
             android:name="androidx.core.content.FileProvider"
