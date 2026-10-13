@@ -24,6 +24,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -58,7 +60,8 @@ fun getZyroColorScheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isHighContrastModeEnabled: Boolean = false,
 ): ColorScheme {
-    return if (darkTheme) darkColorScheme(
+    return remember(darkTheme, isHighContrastModeEnabled) {
+        (if (darkTheme) darkColorScheme(
         primary = Color(0xFF6DE0DB), onPrimary = Color(0xFF003735),
         primaryContainer = Color(0xFF164B50), onPrimaryContainer = Color(0xFFB8F6EF),
         secondary = Color(0xFFB8B9FF), onSecondary = Color(0xFF242457),
@@ -86,7 +89,8 @@ fun getZyroColorScheme(
         surfaceContainer = Color(0xFFEBF0F8), surfaceContainerHigh = Color(0xFFE3EAF4),
         surfaceContainerHighest = Color(0xFFDCE4F0),
         outline = Color(0xFF65768C), outlineVariant = Color(0xFFD0DAE8)
-    )
+    )).withOled(darkTheme && isHighContrastModeEnabled)
+    }
 }
 
 /**
@@ -108,15 +112,20 @@ fun ZyroTheme(
 
     if (isDynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         // Material You dynamic colors (Android 12+)
-        val colorScheme = if (darkTheme) dynamicDarkColorScheme(context)
-                          else dynamicLightColorScheme(context)
-
-        window?.let {
-            WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+        val systemScheme = remember(context, darkTheme) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        rememberSystemUiController(window).apply {
+        val colorScheme = remember(systemScheme, darkTheme, isHighContrastModeEnabled) {
+            systemScheme.withOled(darkTheme && isHighContrastModeEnabled)
+        }
+
+        val systemUiController = rememberSystemUiController(window)
+        LaunchedEffect(window, view, darkTheme, colorScheme.background) {
+            window?.let { WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = !darkTheme }
+            systemUiController.apply {
             setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
             setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+            }
         }
 
         MaterialTheme(
@@ -129,12 +138,12 @@ fun ZyroTheme(
         // Monet color science from user-selected seed color and palette style
         val seedColor = Color(LocalSeedColor.current)
         val paletteStyle = palettesMap[LocalPaletteStyleIndex.current] ?: PaletteStyle.Vibrant
-        val tonalPalettes = seedColor.toTonalPalettes(paletteStyle)
+        val tonalPalettes = remember(seedColor, paletteStyle) { seedColor.toTonalPalettes(paletteStyle) }
 
         CompositionLocalProvider(LocalTonalPalettes provides tonalPalettes) {
             val base = dynamicColorScheme(isLight = !darkTheme)
             val brand = getZyroColorScheme(darkTheme, isHighContrastModeEnabled)
-            val colorScheme = if (LocalSeedColor.current == com.my.zyro.preference.DEFAULT_SEED_COLOR) brand
+            val selectedScheme = if (LocalSeedColor.current == com.my.zyro.preference.DEFAULT_SEED_COLOR) brand
             else base.copy(
                 background = brand.background, onBackground = brand.onBackground,
                 surface = brand.surface, onSurface = brand.onSurface,
@@ -147,12 +156,16 @@ fun ZyroTheme(
                 outlineVariant = brand.outlineVariant
             )
 
-            window?.let {
-                WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+            val colorScheme = remember(selectedScheme, darkTheme, isHighContrastModeEnabled) {
+                selectedScheme.withOled(darkTheme && isHighContrastModeEnabled)
             }
-            rememberSystemUiController(window).apply {
+            val systemUiController = rememberSystemUiController(window)
+            LaunchedEffect(window, view, darkTheme, colorScheme.background) {
+                window?.let { WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = !darkTheme }
+                systemUiController.apply {
                 setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
                 setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+                }
             }
 
             MaterialTheme(
@@ -170,4 +183,15 @@ val ZyroShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(18.dp), large = RoundedCornerShape(24.dp),
     extraLarge = RoundedCornerShape(32.dp)
+)
+
+internal fun ColorScheme.withOled(enabled: Boolean): ColorScheme = if (!enabled) this else copy(
+    background = Color.Black, surface = Color.Black,
+    surfaceDim = Color.Black, surfaceBright = Color(0xFF141414),
+    surfaceContainerLowest = Color.Black, surfaceContainerLow = Color(0xFF050505),
+    surfaceContainer = Color(0xFF0A0A0A), surfaceContainerHigh = Color(0xFF101010),
+    surfaceContainerHighest = Color(0xFF181818), surfaceVariant = Color(0xFF181818),
+    surfaceTint = Color.Transparent, onSurface = Color(0xFFF2F2F2),
+    onBackground = Color(0xFFF2F2F2), onSurfaceVariant = Color(0xFFC7C7C7),
+    outline = Color(0xFF929292), outlineVariant = Color(0xFF333333)
 )

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="zyro_dashboard_description">Escolha um modo e personalize sua presença no Discord.</string>
+    <string name="zyro_oled_description">Fundo preto puro no modo escuro, inclusive com cores dinâmicas.</string>
 </resources>

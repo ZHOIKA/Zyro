@@ -44,7 +44,6 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
@@ -384,6 +383,9 @@ class ExperimentalRpc : Service() {
         )
     }
 
+    private val sessionChangeScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main.immediate)
+    private var sessionChangeJob: kotlinx.coroutines.Job? = null
+
     private fun activeSessionsListener(
         mediaSessions: List<MediaController>?,
         isEvent: Boolean = true,
@@ -405,7 +407,14 @@ class ExperimentalRpc : Service() {
             return
         }
         logger.d(TAG, "Active media sessions changed")
-        if (isEvent) runBlocking { delay(1500) }
+        if (isEvent) {
+            sessionChangeJob?.cancel()
+            sessionChangeJob = sessionChangeScope.launch {
+                delay(1500)
+                activeSessionsListener(mediaSessions, isEvent = false)
+            }
+            return
+        }
 
         currentMediaController?.unregisterCallback(mediaControllerCallback)
         currentMediaController = null
@@ -498,6 +507,7 @@ class ExperimentalRpc : Service() {
     }
 
     override fun onDestroy() {
+        sessionChangeScope.cancel()
         mediaSessionManager.removeOnActiveSessionsChangedListener(::activeSessionsListener)
         currentMediaController?.unregisterCallback(mediaControllerCallback)
         scope.cancel()

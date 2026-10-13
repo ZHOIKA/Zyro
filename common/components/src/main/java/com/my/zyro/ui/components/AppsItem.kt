@@ -15,6 +15,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
+import android.graphics.drawable.Drawable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,6 +37,9 @@ fun AppsItem(
     isChecked: Boolean,
     onClick: () -> Unit = {},
 ) {
+    val appIcon by produceState<Drawable?>(initialValue = null, key1 = pkg) {
+        value = withContext(Dispatchers.IO) { AppUtils.getAppIcon(pkg) }
+    }
     Surface(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
@@ -44,7 +52,7 @@ fun AppsItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
-                model = AppUtils.getAppIcon(pkg),
+                model = appIcon,
                     contentDescription = null,
                     modifier = Modifier
                         .size(70.dp)

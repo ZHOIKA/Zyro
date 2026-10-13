@@ -71,17 +71,6 @@ fun ProfileCard(
     rpcConfig: RpcConfig? = null,
     showTs: Boolean = true
 ) {
-    var elapsed by remember {
-        mutableStateOf(0)
-    }
-    LaunchedEffect(elapsed) {
-        if (elapsed == 90)
-            elapsed = 0
-        else {
-            delay(1000)
-            elapsed++
-        }
-    }
     Card(
         modifier = Modifier
             .padding(padding)
