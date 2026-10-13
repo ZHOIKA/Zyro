@@ -30,37 +30,12 @@ fun KSwitch(
     enable: Boolean = true,
     onClick: (() -> Unit)? = null,
 ) {
-    Surface(
-        modifier = modifier
-            .requiredSize(56.dp, 28.dp)
-            .alpha(if (enable) 1f else 0.5f),
-        shape = CircleShape,
-        color = animateColorAsState(
-            with(MaterialTheme.colorScheme){
-                if (checked) primary
-                else surfaceVariant
-            }
-        ).value
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-                    then if (onClick != null) Modifier.clickable { onClick() } else Modifier
-        ) {
-            Surface(
-                modifier = Modifier
-                    .size(20.dp)
-                    .align(Alignment.CenterStart)
-                    .offset(x = animateDpAsState(if (checked) 32.dp else 4.dp).value),
-                shape = CircleShape,
-                color = animateColorAsState(
-                    with(MaterialTheme.colorScheme){
-                        if (checked) onPrimary
-                        else outline
-                    }
-                ).value
-            ) {}
-        }
-    }
+    androidx.compose.material3.Switch(
+        modifier = modifier,
+        checked = checked,
+        enabled = enable,
+        onCheckedChange = onClick?.let { callback -> { _: Boolean -> callback() } }
+    )
 }
 
 @Preview

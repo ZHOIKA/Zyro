@@ -66,7 +66,7 @@ fun ProfileCard(
     user: User?,
     borderColors: List<Color> = listOf(Color(0xFFa3a1ed), Color(0xFFA77798)),
     backgroundColors: List<Color> = listOf(Color(0xFFC2C0FA), Color(0xFFFADAF0)),
-    padding: Dp = 30.dp,
+    padding: Dp = 16.dp,
     type: String = stringResource(id = R.string.user_profile_rpc_name),
     rpcConfig: RpcConfig? = null,
     showTs: Boolean = true
@@ -86,13 +86,13 @@ fun ProfileCard(
         modifier = Modifier
             .padding(padding)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(24.dp))
             .background(
-                brush = Brush.verticalGradient(colors = backgroundColors)
+                color = MaterialTheme.colorScheme.surfaceContainer
             ),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(24.dp),
         border = BorderStroke(
-            4.dp, Brush.verticalGradient(colors = borderColors)
+            1.dp, MaterialTheme.colorScheme.outlineVariant
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent,
@@ -105,7 +105,7 @@ fun ProfileCard(
                         .fillMaxWidth()
                         .height(120.dp),
                     model = user.getBannerImage() ?: USER_BANNER,
-                    contentScale = ContentScale.FillWidth,
+                    contentScale = ContentScale.Crop,
                     placeholder = painterResource(R.drawable.broken_image),
                     contentDescription = "User Avatar"
                 )
@@ -120,7 +120,7 @@ fun ProfileCard(
                         .size(110.dp)
                         .border(
                             width = 8.dp,
-                            color = borderColors.first(),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
                             shape = CircleShape
                         )
                         .clip(CircleShape),
@@ -131,7 +131,7 @@ fun ProfileCard(
                         .align(Alignment.BottomEnd)
                         .padding(15.dp, 8.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 ) {
                     if (user.nitro == true) {
                         AsyncImage(
@@ -160,8 +160,8 @@ fun ProfileCard(
             Column(
                 Modifier
                     .padding(15.dp, 5.dp, 15.dp, 15.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
                 ProfileText(
                     text = user.globalName ?: user.username,
@@ -178,7 +178,7 @@ fun ProfileCard(
                         .fillMaxWidth()
                         .padding(19.dp, 0.dp, 19.dp, 5.dp)
                         .height(1.5.dp)
-                        .background(Color(0xFFC2C0FA))
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
                 if (!user.bio.isNullOrEmpty()) {
                     ProfileText(
@@ -218,7 +218,7 @@ fun ProfileText(
             style = if (!bold) style
             else style.copy(fontWeight = FontWeight.ExtraBold),
             modifier = modifier,
-            color = Color.Black.copy(alpha = 0.9f)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -237,10 +237,10 @@ fun ProfileButton(label: String?, link: String?) {
                 }
             },
             colors = ButtonDefaults.elevatedButtonColors(
-                containerColor = DISCORD_LIGHT_DARK,
-                contentColor = Color.White.copy(alpha = 0.8f)
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(24.dp)
         ) {
             Text(label)
         }

@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.sp
 import com.my.zyro.ui.components.KSwitch
 
@@ -68,7 +70,10 @@ fun PreferenceSwitch(
     onClick: () -> Unit = {},
 ) {
     Surface(
-        modifier = if (enabled) Modifier.clickable { onClick() } else Modifier
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).then(if (enabled) Modifier.clickable { onClick() } else Modifier),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier
@@ -83,7 +88,7 @@ fun PreferenceSwitch(
                 Text(
                     text = title,
                     maxLines = 2,
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp),
                     color = MaterialTheme.colorScheme.onSurface,
                     overflow = TextOverflow.Ellipsis
                 )

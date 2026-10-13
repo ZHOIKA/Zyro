@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.blankj.utilcode.util.AppUtils
@@ -31,9 +33,9 @@ fun AppsItem(
     onClick: () -> Unit = {},
 ) {
     Surface(
-        modifier = Modifier.clickable {
-            onClick()
-        }
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        color = if (isChecked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     ) {
         Row(
             modifier = Modifier
@@ -54,8 +56,8 @@ fun AppsItem(
             ) {
                 Text(
                     text = name,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                    maxLines = 3,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp),
                     color = MaterialTheme.colorScheme.onSurface,
                     overflow = TextOverflow.Ellipsis
                 )

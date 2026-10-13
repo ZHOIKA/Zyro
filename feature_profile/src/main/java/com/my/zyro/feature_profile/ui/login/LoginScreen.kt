@@ -13,6 +13,11 @@
 package com.my.zyro.feature_profile.ui.login
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.my.zyro.resources.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -85,10 +90,21 @@ fun LoginScreen(
                     CircularProgressIndicator()
                 }
             }
-            DiscordLoginButton(
-                onClick = { uiState = LoginUiState.OnLoginClicked },
-                enabled = buttonEnabledState
-            )
+            if (uiState == LoginUiState.InitialState) {
+                Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Surface(shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                        Text("Z", style = MaterialTheme.typography.displayLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.padding(28.dp))
+                    }
+                    Text("Zyro", style = MaterialTheme.typography.displaySmall)
+                    Text(stringResource(R.string.zyro_dashboard_description),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    DiscordLoginButton(onClick = { uiState = LoginUiState.OnLoginClicked }, enabled = buttonEnabledState)
+                }
+            }
         }
     }
 }

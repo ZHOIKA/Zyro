@@ -1,94 +1,61 @@
-name: Zyro Release
-
+name: Zyro Signed Release
 on:
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   release:
-    name: Build Zyro Signed APK
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Surgical Clean
-        run: |
-          find . -name "build" -type d -exec rm -rf {} +
-          chmod -R 777 .
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
-          cache: gradle
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: wrapper
-
-      - name: Create debug keystore for CI
-        run: |
-          if [ ! -f keystore.properties ]; then
-            keytool -genkey -v -keystore debug.keystore -alias debug \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass android -keypass android \
-              -dname "CN=Zyro CI, OU=CI, O=Zyro, L=Unknown, ST=Unknown, C=US"
-            echo "storeFile=debug.keystore" > keystore.properties
-            echo "storePassword=android" >> keystore.properties
-            echo "keyAlias=debug" >> keystore.properties
-            echo "keyPassword=android" >> keystore.properties
-          fi
-
-      - name: Build Release
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Restore permanent signing key
         env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+          KEYSTORE_BASE64: ${{ secrets.ZYRO_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ZYRO_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ZYRO_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ZYRO_KEY_PASSWORD }}
+        shell: bash
         run: |
-          ./gradlew clean assembleRelease
-
-      - name: Prepare APK
+          python3 - <<'PYTHON'
+          import os, base64
+          from pathlib import Path
+          names = ['KEYSTORE_BASE64', 'STORE_PASSWORD', 'KEY_ALIAS', 'KEY_PASSWORD']
+          if any(not os.environ.get(name) for name in names):
+              raise SystemExit('Configure all four ZYRO signing secrets using the ORIGINAL signing key. No replacement key will be generated.')
+          Path('release.keystore').write_bytes(base64.b64decode(os.environ['KEYSTORE_BASE64'], validate=True))
+          def escape(value):
+              return value.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r')
+          values = {'storeFile': 'release.keystore', 'storePassword': os.environ['STORE_PASSWORD'], 'keyAlias': os.environ['KEY_ALIAS'], 'keyPassword': os.environ['KEY_PASSWORD']}
+          Path('keystore.properties').write_text(''.join(key + '=' + escape(value) + '\n' for key, value in values.items()))
+          PYTHON
+      - name: Test and build
+        run: bash gradlew :gateway:test :app:assembleRelease --no-daemon
+      - name: Verify signature
+        shell: bash
         run: |
           mkdir -p release
-          APK=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
-          if [ -z "$APK" ]; then
-            echo "APK not found"
-            exit 1
-          fi
-          cp "$APK" release/Zyro.apk
-          ls -lh release/Zyro.apk
-
-      - name: Verify APK Signature
-        run: |
-          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose release/Zyro.apk
-          echo "APK signed"
-
-      - name: Commit Version
-        run: |
-          git config user.name "Zyro Bot"
-          git config user.email "actions@github.com"
-          git add gradle/libs.versions.toml
-          git commit -m "Update Zyro version" || exit 0
-          git push
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+          APK=$(find app/build/outputs/apk/release -name '*.apk' ! -name '*unsigned*' -print -quit)
+          test -n "$APK"
+          cp "$APK" release/Zyro-1.1.0.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs release/Zyro-1.1.0.apk > release/signature.txt
+      - uses: actions/upload-artifact@v4
         with:
-          tag_name: "beta-${{ github.run_number }}"
-          name: "Zyro Beta ${{ github.run_number }}"
-          body: |
-            Zyro Beta Update
-            Signed APK generated automatically.
-          files: |
-            release/Zyro.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          name: Zyro-signed
+          path: release/
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: 'v1.1.0-${{ github.run_number }}'
+          name: Zyro 1.1.0
+          draft: true
+          body: New interface. Update compatibility requires the same signing certificate as the installed app.
+          files: release/*
+      - name: Remove signing material
+        if: always()
+        run: rm -f release.keystore keystore.properties

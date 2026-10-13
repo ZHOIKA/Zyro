@@ -33,14 +33,14 @@ fun SwitchBar(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    val colorScheme = getZyroColorScheme(darkTheme = false)
+    val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .clip(RoundedCornerShape(25.dp))
-            .background(colorScheme.primaryContainer)
-            .toggleable(enabled){
+            .background(if (isChecked) colorScheme.primaryContainer else colorScheme.surfaceContainer)
+            .toggleable(value = isChecked, enabled = enabled, role = androidx.compose.ui.semantics.Role.Switch){
                 onClick()
             }
             .padding(20.dp),
@@ -51,8 +51,8 @@ fun SwitchBar(
             Text(
                 modifier = Modifier.weight(4f),
                 text = title,
-                maxLines = 1,
-                style = typography.titleLarge.copy(fontSize = 20.sp),
+                maxLines = 3,
+                style = typography.titleLarge.copy(fontSize = 18.sp),
                 color = colorScheme.onSurface,
                 overflow = TextOverflow.Ellipsis
             )

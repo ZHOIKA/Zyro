@@ -35,14 +35,14 @@ val AppTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = systemSans,
         fontWeight = FontWeight.W400,
-        fontSize = 57.sp,
+        fontSize = 48.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp,
     ),
     displayMedium = TextStyle(
         fontFamily = systemSans,
         fontWeight = FontWeight.W400,
-        fontSize = 45.sp,
+        fontSize = 40.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp,
     ),
@@ -64,14 +64,14 @@ val AppTypography = Typography(
     ),
     headlineMedium = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp,
     ),
     headlineSmall = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp,
@@ -80,21 +80,21 @@ val AppTypography = Typography(
     // Title styles - Medium importance text
     titleLarge = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp,
     ),
     titleMedium = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = (0.15).sp,
     ),
     titleSmall = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = (0.1).sp,
@@ -126,21 +126,21 @@ val AppTypography = Typography(
     // Label styles - Small UI elements, buttons, chips
     labelLarge = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = (0.1).sp,
     ),
     labelMedium = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = (0.5).sp,
     ),
     labelSmall = TextStyle(
         fontFamily = systemSans,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W600,
         fontSize = 11.sp,
         lineHeight = 16.sp,
         letterSpacing = (0.5).sp,

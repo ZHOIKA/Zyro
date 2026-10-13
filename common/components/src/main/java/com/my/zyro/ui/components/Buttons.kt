@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -49,7 +51,7 @@ fun ZyroButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
+        targetValue = if (isPressed) 0.97f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -58,13 +60,14 @@ fun ZyroButton(
     )
 
     val gradient = Brush.linearGradient(
-        colors = listOf(ZyroViolet, ZyroVioletDark)
+        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
     )
 
     Surface(
         modifier = modifier
+            .sizeIn(minHeight = 48.dp)
             .scale(scale)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(18.dp))
             .then(
                 if (enabled) Modifier.background(gradient)
                 else Modifier.background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
@@ -73,6 +76,7 @@ fun ZyroButton(
                 interactionSource = interactionSource,
                 indication = null,
                 enabled = enabled,
+                role = Role.Button,
                 onClick = onClick
             ),
         color = Color.Transparent
@@ -81,7 +85,7 @@ fun ZyroButton(
             modifier = Modifier.padding(contentPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalContentColor provides ZyroWhite) {
+            CompositionLocalProvider(LocalContentColor provides if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)) {
                 content()
             }
         }
@@ -111,6 +115,7 @@ fun ZyroTextButton(
                 interactionSource = interactionSource,
                 indication = null,
                 enabled = enabled,
+                role = Role.Button,
                 onClick = onClick
             ),
         color = backgroundColor
@@ -135,7 +140,7 @@ fun ZyroIconButton(
     val isPressed by interactionSource.collectIsPressedAsState()
     
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.85f else 1f,
+        targetValue = if (isPressed) 0.94f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -152,6 +157,7 @@ fun ZyroIconButton(
                 interactionSource = interactionSource,
                 indication = null,
                 enabled = enabled,
+                role = Role.Button,
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center

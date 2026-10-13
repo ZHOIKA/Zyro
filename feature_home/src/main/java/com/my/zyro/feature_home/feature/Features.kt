@@ -9,230 +9,82 @@
 
 package com.my.zyro.feature_home.feature
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.RichTooltip
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberTooltipState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.flowlayout.FlowMainAxisAlignment
-import com.google.accompanist.flowlayout.FlowRow
-import com.google.accompanist.flowlayout.SizeMode
 import com.my.zyro.resources.R
 import com.my.zyro.ui.components.KSwitch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Features(
-    homeItems: List<HomeFeature> = emptyList(), onValueUpdate: (Int) -> Unit
-) {
+fun Features(homeItems: List<HomeFeature> = emptyList(), onValueUpdate: (Int) -> Unit) {
     val uriHandler = LocalUriHandler.current
-    val brush = Brush.linearGradient(
-        listOf(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.secondaryContainer.copy(0.8f),
-            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-        )
-    )
-    val featureSize = (LocalConfiguration.current.screenWidthDp.dp / 2)
-    FlowRow(
-        mainAxisSize = SizeMode.Expand,
-        mainAxisAlignment = FlowMainAxisAlignment.SpaceBetween
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        for (i in homeItems.indices) {
-            if (homeItems[i].tooltipText.isNotBlank()) {
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    state = rememberTooltipState(),
-                    tooltip = {
-                        RichTooltip(
-                            title = {
-                                Text(
-                                    homeItems[i].title,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            },
-                            text = {
-                                Text(homeItems[i].tooltipText)
-                            },
-                            action = {
-                                TextButton(
-                                    onClick = {
-                                        uriHandler.openUri(homeItems[i].featureDocsLink)
-                                    },
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.learn_more),
-                                    )
-                                }
-                            },
-                        )
-                    },
+        homeItems.forEachIndexed { index, feature ->
+            val card: @Composable () -> Unit = {
+                Surface(
+                    onClick = { feature.route?.let(feature.onClick) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    color = if (feature.isChecked) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(1.dp, if (feature.isChecked) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 ) {
-                    Box(modifier = Modifier
-                        .size(featureSize)
-                        .padding(9.dp)
-                        .aspectRatio(1f)
-                        .clip(homeItems[i].shape)
-                        .background(
-                            brush = if (homeItems[i].isChecked) {
-                                Brush.linearGradient(
-                                    listOf(
-                                        MaterialTheme.colorScheme.primaryContainer,
-                                        MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                                    )
-                                )
-                            } else {
-                                brush
+                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                                Icon(painterResource(feature.icon), contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(14.dp).size(26.dp))
                             }
-                        )
-                        .clickable { homeItems[i].route?.let { homeItems[i].onClick(it) } }) {
-                        Column(
-                            Modifier
-                                .fillMaxSize()
-                                .padding(15.dp, 15.dp, 2.dp, 15.dp)
-                        ) {
-                            Icon(
-                                tint = if (homeItems[i].isChecked) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.secondary,
-                                painter = painterResource(id = homeItems[i].icon),
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(5.dp, 0.dp)
-                            )
-                            Text(
-                                text = homeItems[i].title,
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.W500),
-                                color = if (homeItems[i].isChecked) MaterialTheme.colorScheme.onPrimaryContainer
-                                else MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.weight(2f)
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            ) {
-                                if (homeItems[i].showSwitch) {
-                                    Text(
-                                        text = if (homeItems[i].isChecked) stringResource(id = R.string.android_on)
-                                        else stringResource(id = R.string.android_off),
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.W600),
-                                        color = if (homeItems[i].isChecked) MaterialTheme.colorScheme.onPrimaryContainer
-                                        else MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                    KSwitch(
-                                        checked = homeItems[i].isChecked,
-                                        modifier = Modifier.rotate(-90f),
-                                        onClick = {
-                                            homeItems[i].onCheckedChange(!homeItems[i].isChecked)
-                                            onValueUpdate(i)
-                                        }
-                                    )
-                                }
+                            Spacer(Modifier.width(16.dp))
+                            Text(feature.title, style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Rounded.ArrowForward, contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                        }
+                        if (feature.tooltipText.isNotBlank()) {
+                            Text(feature.tooltipText, style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (feature.showSwitch) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(stringResource(if (feature.isChecked) R.string.android_on else R.string.android_off),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (feature.isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                                KSwitch(checked = feature.isChecked, onClick = {
+                                    feature.onCheckedChange(!feature.isChecked)
+                                    onValueUpdate(index)
+                                })
                             }
                         }
                     }
                 }
             }
-            else {
-                Box(modifier = Modifier
-                    .size(featureSize)
-                    .padding(9.dp)
-                    .aspectRatio(1f)
-                    .clip(homeItems[i].shape)
-                    .background(
-                        brush = if (homeItems[i].isChecked) {
-                            Brush.linearGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                                )
-                            )
-                        } else {
-                            brush
-                        }
-                    )
-                    .clickable { homeItems[i].route?.let { homeItems[i].onClick(it) } }) {
-                    Column(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(15.dp, 15.dp, 2.dp, 15.dp)
-                    ) {
-                        Icon(
-                            tint = if (homeItems[i].isChecked) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.secondary,
-                            painter = painterResource(id = homeItems[i].icon),
-                            contentDescription = "",
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(5.dp, 0.dp)
-                        )
-                        Text(
-                            text = homeItems[i].title,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.W500),
-                            color = if (homeItems[i].isChecked) MaterialTheme.colorScheme.onPrimaryContainer
-                            else MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.weight(2f)
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        ) {
-                            if (homeItems[i].showSwitch) {
-                                Text(
-                                    text = if (homeItems[i].isChecked) stringResource(id = R.string.android_on)
-                                    else stringResource(id = R.string.android_off),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.W600),
-                                    color = if (homeItems[i].isChecked) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                KSwitch(
-                                    checked = homeItems[i].isChecked,
-                                    modifier = Modifier.rotate(-90f),
-                                    onClick = {
-                                        homeItems[i].onCheckedChange(!homeItems[i].isChecked)
-                                        onValueUpdate(i)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            if (feature.tooltipText.isNotBlank() && feature.featureDocsLink.isNotBlank()) {
+                TooltipBox(positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    state = rememberTooltipState(), tooltip = {
+                        RichTooltip(title = { Text(feature.title) }, text = { Text(feature.tooltipText) },
+                            action = { TextButton(onClick = { uriHandler.openUri(feature.featureDocsLink) }) {
+                                Text(stringResource(R.string.learn_more))
+                            } })
+                    }) { card() }
+            } else card()
         }
     }
 }

@@ -9,6 +9,9 @@
 
 package com.my.zyro.ui.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -44,9 +47,10 @@ fun KTextField(
         focusRequester.requestFocus()
     }
 
-    TextField(
-        modifier = Modifier.focusRequester(focusRequester),
-        colors = TextFieldDefaults.colors(
+    OutlinedTextField(
+        shape = RoundedCornerShape(18.dp),
+        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+        colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
