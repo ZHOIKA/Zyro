@@ -53,7 +53,7 @@ android {
                         storePassword = props.getProperty("storePassword")
                         keyAlias = props.getProperty("keyAlias")
                         keyPassword = props.getProperty("keyPassword")
-                        println("Release keystore: $releaseKeystore")
+
                     }
                 }
             }
@@ -171,4 +171,17 @@ dependencies {
     implementation(libs.androidx.material)
 
     implementation(libs.material3.windows.size)
+}
+
+gradle.taskGraph.whenReady {
+    val buildsReleaseApk = allTasks.any {
+        it.project == project && (it.name == "assembleRelease" || it.name == "packageRelease" || it.name == "bundleRelease")
+    }
+    if (buildsReleaseApk) {
+        val signing = android.signingConfigs.findByName("release")
+        check(signing != null && signing.storeFile?.isFile == true && !signing.storePassword.isNullOrBlank() &&
+            !signing.keyAlias.isNullOrBlank() && !signing.keyPassword.isNullOrBlank()) {
+            "Release requires the permanent signing keystore and all signing properties."
+        }
+    }
 }
