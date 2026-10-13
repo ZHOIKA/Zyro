@@ -86,9 +86,13 @@ fun DarkThemePreferences(onBackPressed: () -> Unit) {
                 item {
                     PreferenceSwitch(
                         title = stringResource(R.string.amoled),
+                        description = stringResource(R.string.zyro_oled_description),
                         icon = Icons.Outlined.Contrast,
                         isChecked = isHighContrastModeEnabled, onClick = {
-                            modifyDarkThemePreference(isHighContrastModeEnabled = !isHighContrastModeEnabled)
+                            modifyDarkThemePreference(
+                                darkThemeValue = if (!isHighContrastModeEnabled) ON else darkThemePreference.darkThemeValue,
+                                isHighContrastModeEnabled = !isHighContrastModeEnabled
+                            )
                         }
                     )
                 }

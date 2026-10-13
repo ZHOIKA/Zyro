@@ -40,16 +40,20 @@ class GamesViewModel @Inject constructor(
     val isSearchBarVisible = mutableStateOf(false)
 
     private var searchJob: Job? = null
+    private var loadJob: Job? = null
 
     init {
         getGames()
     }
 
     private fun getGames() {
-        getGamesUseCase().onEach { result ->
+        loadJob?.cancel()
+        searchJob?.cancel()
+        loadJob = getGamesUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _state.value = GamesState.Success(games = result.data ?: emptyList())
+                    games.clear()
                     games.addAll(result.data ?: emptyList())
                 }
 
@@ -84,7 +88,7 @@ class GamesViewModel @Inject constructor(
     }
 
     private fun searchForGame(query: String) = if (query == "")
-        _state.value = GamesState.Success(games = games)
+        _state.value = GamesState.Success(games = games.toList())
     else {
         val newList = games.filter {
             it.game_title.contains(query, ignoreCase = true)

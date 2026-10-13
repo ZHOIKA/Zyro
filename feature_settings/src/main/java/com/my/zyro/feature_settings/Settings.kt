@@ -96,7 +96,7 @@ fun SettingsDrawer(
             ) {
                 Text(
                     text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.headlineMedium
                 )
             }
             LazyColumn(
@@ -216,8 +216,8 @@ fun SettingsItemCard(
         label = {
             Text(
                 text = title,
-                maxLines = 1,
-                style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp)
+                maxLines = 2,
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp)
                     .copy(fontWeight = FontWeight.SemiBold),
             )
         },
@@ -270,7 +270,7 @@ fun ProfileCardSmall(
                     buildAnnotatedString {
                         withStyle(
                             style = MaterialTheme.typography.titleLarge.copy(
-                                fontSize = 20.sp,
+                                fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Left
                             ).toSpanStyle()

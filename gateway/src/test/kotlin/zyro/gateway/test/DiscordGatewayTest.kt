@@ -17,9 +17,28 @@ import zyro.gateway.DiscordWebSocketImpl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.junit.Assume.assumeTrue
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertSame
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.awaitCancellation
 import kotlin.time.Duration.Companion.seconds
 
 class DiscordGatewayTest {
+    @Test
+    fun `Closing cancels child jobs and keeps a reusable stable scope`() = runBlocking {
+        val gateway = DiscordWebSocketImpl("test-token")
+        val lifecycle = gateway.coroutineContext[Job]
+        assertSame(lifecycle, gateway.coroutineContext[Job])
+        val child = gateway.launch { awaitCancellation() }
+        gateway.close()
+        child.join()
+        assertTrue(child.isCancelled)
+        assertTrue(requireNotNull(lifecycle).isActive)
+        assertTrue(!gateway.isWebSocketConnected())
+    }
+
     @Test
     fun `Check Gateway Connection`() = runBlocking {
         val logger = object: Logger  {
@@ -40,9 +59,15 @@ class DiscordGatewayTest {
             }
 
         }
-        val gateway = DiscordWebSocketImpl(System.getenv("DISCORD_TOKEN"),logger)
-        gateway.connect()
-        delay(2.seconds)
-        assert(gateway.isWebSocketConnected())
+        val token = System.getenv("DISCORD_TOKEN")
+        assumeTrue("Live test requires DISCORD_TOKEN", !token.isNullOrBlank())
+        val gateway = DiscordWebSocketImpl(requireNotNull(token), logger)
+        try {
+            gateway.connect()
+            delay(2.seconds)
+            assertTrue(gateway.isWebSocketConnected())
+        } finally {
+            gateway.close()
+        }
     }
 }

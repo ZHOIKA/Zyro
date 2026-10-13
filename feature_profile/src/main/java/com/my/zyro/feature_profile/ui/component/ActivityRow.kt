@@ -46,6 +46,7 @@ import coil.compose.AsyncImage
 import com.my.zyro.domain.model.rpc.RpcConfig
 import com.my.zyro.resources.R
 import com.my.zyro.ui.theme.DISCORD_BLURPLE
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -67,22 +68,19 @@ fun ActivityRow(
     // Media
     var elapsedText by remember { mutableStateOf("00:00") }
     var sliderPosition by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(elapsedState) {
-        while (true) {
-            delay(1000)
+    LaunchedEffect(showTs, rpcConfig?.type, rpcConfig?.timestampsStart, rpcConfig?.timestampsStop) {
+        if (!showTs) return@LaunchedEffect
+        while (isActive) {
             elapsedState = formatTime(elapsed)
-            if (isPlayingMedia && rpcConfig?.timestampsStart?.toLongOrNull() != null && rpcConfig?.timestampsStop?.toLongOrNull() != null) {
-                val startTime = rpcConfig.timestampsStart.toLong()
-                val endTime = rpcConfig.timestampsStop.toLong()
-                val difference = endTime - startTime
-                val elapsed1 = System.currentTimeMillis() - startTime
-                sliderPosition = (elapsed1.toFloat() / difference.toFloat())
-                elapsedText = if (elapsed1 < difference) {
-                    getFormatFromMs(elapsed1)
-                } else {
-                    getFormatFromMs(difference)
-                }
+            val start = rpcConfig?.timestampsStart?.toLongOrNull()
+            val end = rpcConfig?.timestampsStop?.toLongOrNull()
+            if (isPlayingMedia && start != null && end != null) {
+                val duration = end - start
+                val progress = (System.currentTimeMillis() - start).coerceIn(0L, duration.coerceAtLeast(0L))
+                sliderPosition = if (duration > 0) (progress.toFloat() / duration).coerceIn(0f, 1f) else 0f
+                elapsedText = getFormatFromMs(progress)
             }
+            delay(1000)
         }
     }
 

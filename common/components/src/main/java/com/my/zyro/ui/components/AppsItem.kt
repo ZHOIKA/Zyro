@@ -15,10 +15,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
+import android.graphics.drawable.Drawable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.blankj.utilcode.util.AppUtils
@@ -30,10 +37,13 @@ fun AppsItem(
     isChecked: Boolean,
     onClick: () -> Unit = {},
 ) {
+    val appIcon by produceState<Drawable?>(initialValue = null, key1 = pkg) {
+        value = withContext(Dispatchers.IO) { AppUtils.getAppIcon(pkg) }
+    }
     Surface(
-        modifier = Modifier.clickable {
-            onClick()
-        }
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        color = if (isChecked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     ) {
         Row(
             modifier = Modifier
@@ -42,7 +52,7 @@ fun AppsItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
-                model = AppUtils.getAppIcon(pkg),
+                model = appIcon,
                     contentDescription = null,
                     modifier = Modifier
                         .size(70.dp)
@@ -54,8 +64,8 @@ fun AppsItem(
             ) {
                 Text(
                     text = name,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                    maxLines = 3,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp),
                     color = MaterialTheme.colorScheme.onSurface,
                     overflow = TextOverflow.Ellipsis
                 )

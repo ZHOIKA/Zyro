@@ -16,6 +16,8 @@ import com.my.zyro.preference.Prefs
 import com.my.zyro.data.utils.getAppInfo
 import com.my.zyro.data.utils.toBitmap
 import com.my.zyro.data.utils.toFile
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -31,7 +33,14 @@ sealed class RpcImage {
 
     class ExternalImage(val image: String) : RpcImage() {
         override suspend fun resolveImage(repository: ZyroRepository): String? {
-            return repository.getImage(image)
+            if (image.isBlank()) return null
+            return try {
+                withTimeoutOrNull(5_000L) { repository.getImage(image) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 

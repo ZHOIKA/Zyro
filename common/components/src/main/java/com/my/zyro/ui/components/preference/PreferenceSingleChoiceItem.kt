@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.sp
 
 @Composable
@@ -32,7 +34,10 @@ fun PreferenceSingleChoiceItem(
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.clickable { onClick() }
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier
@@ -47,8 +52,8 @@ fun PreferenceSingleChoiceItem(
             ) {
                 Text(
                     text = text,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                    maxLines = 3,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 17.sp),
                     color = MaterialTheme.colorScheme.onSurface, overflow = TextOverflow.Ellipsis
                 )
             }

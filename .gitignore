@@ -47,3 +47,5 @@ keystore/
 keystore.txt
 keystore.properties
 
+
+*.keystore

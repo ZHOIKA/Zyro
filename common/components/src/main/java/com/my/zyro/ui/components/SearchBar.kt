@@ -58,7 +58,7 @@ fun SearchBar(
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .clip(
-                RoundedCornerShape(200.dp)
+                RoundedCornerShape(18.dp)
             ),
         decorationBox = { innerTextField ->
             val containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(5.dp)

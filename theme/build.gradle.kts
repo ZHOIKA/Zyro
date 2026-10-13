@@ -8,6 +8,7 @@ android {
 }
 
 dependencies {
+    testImplementation(libs.junit)
     implementation (libs.material3)
     implementation (libs.material3.windows.size)
     implementation (projects.domain)

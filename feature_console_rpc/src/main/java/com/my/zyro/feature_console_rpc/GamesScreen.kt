@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,6 +67,7 @@ import com.my.zyro.feature_rpc_base.Constants.CONSOLE_PLATFORMS
 import com.my.zyro.feature_rpc_base.Constants.PlatformOption
 import com.my.zyro.feature_rpc_base.services.AppDetectionService
 import com.my.zyro.feature_rpc_base.services.CustomRpcService
+import com.my.zyro.feature_rpc_base.services.ExperimentalRpc
 import com.my.zyro.feature_rpc_base.services.MediaRpcService
 import com.my.zyro.preference.Prefs
 import com.my.zyro.resources.R
@@ -100,7 +102,7 @@ fun GamesScreen(
 
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current
     val savedRpc = remember {
-        if (isPreview) "" else Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
+        if (isPreview) "" else restoreConsoleConfig(Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""])
     }
     LaunchedEffect(savedRpc) {
         if (savedRpc.isNotEmpty() && !intent.hasExtra("RPC")) {
@@ -124,17 +126,9 @@ fun GamesScreen(
                 pendingGame = null
                 selected = currentGame.game_title
                 val string = Json.encodeToString(
-                    RpcConfig(
-                        name = platform.displayName,
-                        details = currentGame.game_title,
-                        timestampsStart = System.currentTimeMillis().toString(),
-                        status = "dnd",
-                        largeImg = currentGame.large_image ?: "",
-                        smallImg = platform.iconUrl,
-                        type = "0",
-                        platform = platform.displayName,
-                    )
+                    consoleConfig(currentGame, platform, System.currentTimeMillis())
                 )
+                Prefs[Prefs.LAST_RUN_CONSOLE_RPC] = string
                 intent.apply {
                     removeExtra("RPC")
                     putExtra("RPC", string)
@@ -164,6 +158,8 @@ fun GamesScreen(
                             text = searchText,
                             placeholder = stringResource(id = R.string.search_placeholder),
                             onClose = {
+                                searchText = ""
+                                onEvent(UiEvent.Search(""))
                                 onEvent(UiEvent.CloseSearchBar)
                             }
                         )
@@ -230,7 +226,7 @@ fun GamesScreen(
                             isChecked = isConsoleRpcRunning
                         ) {
                             val rpcString = intent.getStringExtra("RPC")
-                                ?: Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""]
+                                ?: restoreConsoleConfig(Prefs[Prefs.LAST_RUN_CONSOLE_RPC, ""])
                             
                             if (rpcString.isEmpty() && !isConsoleRpcRunning) {
                                 Toast.makeText(context, context.getString(R.string.select_game_first), Toast.LENGTH_SHORT).show()
@@ -240,11 +236,17 @@ fun GamesScreen(
                             isConsoleRpcRunning = !isConsoleRpcRunning
                             when (isConsoleRpcRunning) {
                                 true -> {
+                                    if (Prefs[Prefs.TOKEN, ""].isBlank()) {
+                                        isConsoleRpcRunning = false
+                                        Toast.makeText(context, context.getString(R.string.login_with_discord), Toast.LENGTH_LONG).show()
+                                        return@SwitchBar
+                                    }
                                     Prefs[Prefs.LAST_RUN_CONSOLE_RPC] = rpcString
                                     intent.removeExtra("RPC")
                                     intent.putExtra("RPC", rpcString)
                                     context.stopService(Intent(context, AppDetectionService::class.java))
                                     context.stopService(Intent(context, MediaRpcService::class.java))
+                                    context.stopService(Intent(context, ExperimentalRpc::class.java))
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                         context.startForegroundService(intent)
                                     } else {
@@ -457,6 +459,8 @@ private fun PlatformPickerDialog(
                     ) {
                         AsyncImage(
                             model = platform.iconUrl,
+                            fallback = painterResource(R.drawable.ic_rpc_placeholder),
+                            error = painterResource(R.drawable.ic_rpc_placeholder),
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(RoundedCornerShape(4.dp)),

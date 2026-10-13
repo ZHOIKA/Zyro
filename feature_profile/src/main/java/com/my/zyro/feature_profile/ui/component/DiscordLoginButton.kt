@@ -17,6 +17,8 @@ import android.telephony.TelephonyManager
 import android.app.Activity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
@@ -75,6 +77,7 @@ internal fun DiscordLoginButton(
 
     if (enabled) {
         ElevatedButton(
+            modifier = Modifier.heightIn(min = 56.dp),
             onClick = {
                 val country = getUserCountry(context)
                 if (country in NON_ACCESSIBLE_COUNTRIES) {
@@ -84,10 +87,10 @@ internal fun DiscordLoginButton(
                 }
             },
             colors = ButtonDefaults.elevatedButtonColors(
-                containerColor = DISCORD_GREY,
-                contentColor = Color.White.copy(alpha = 0.8f)
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(18.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_discord),

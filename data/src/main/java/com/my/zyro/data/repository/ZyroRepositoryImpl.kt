@@ -84,7 +84,8 @@ class ZyroRepositoryImpl @Inject constructor(
 
     override suspend fun getGames(): List<Game> {
 
-        return api
+        return try {
+            api
             .getGames()
             .getOrNull()
             ?.body<List<GamesResponse>>()
@@ -95,6 +96,12 @@ class ZyroRepositoryImpl @Inject constructor(
                 GamesData.games
             }
             ?: GamesData.games
+
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            GamesData.games
+        }
 
     }
 

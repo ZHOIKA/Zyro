@@ -218,6 +218,7 @@ class MediaRpcService : Service() {
                 }
             }
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             logger.e("MediaRPC", "Presence update failed: ${e.message}")
         }
     }
@@ -226,6 +227,9 @@ class MediaRpcService : Service() {
      * Handles media session list changes
      * Registers callback for new active session or unregisters when none available
      */
+    private val sessionChangeScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Main.immediate)
+    private var sessionChangeJob: kotlinx.coroutines.Job? = null
+
     private fun onMediaSessionsChanged(
         sessions: List<MediaController>?,
         isEvent: Boolean = true
@@ -234,7 +238,12 @@ class MediaRpcService : Service() {
 
         // Debounce: event may fire before system updates session list
         if (isEvent) {
-            runBlocking { delay(1500) }
+            sessionChangeJob?.cancel()
+            sessionChangeJob = sessionChangeScope.launch {
+                delay(1500)
+                onMediaSessionsChanged(sessions, isEvent = false)
+            }
+            return
         }
 
         // Unregister old callback and register new one
@@ -316,6 +325,7 @@ class MediaRpcService : Service() {
      * Service cleanup on destruction
      */
     override fun onDestroy() {
+        sessionChangeScope.cancel()
         try {
             mediaSession.removeOnActiveSessionsChangedListener(::onMediaSessionsChanged)
             activeMediaController?.unregisterCallback(mediaCallback)

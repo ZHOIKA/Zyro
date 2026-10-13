@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 
 @SuppressLint("ModifierParameter")
 @Composable
@@ -32,7 +34,10 @@ fun SettingItem(
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.clickable { onClick() }
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = modifier,
@@ -55,7 +60,7 @@ fun SettingItem(
             ) {
                 Text(
                     text = title,
-                    maxLines = 1,
+                    maxLines = 3,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -79,7 +84,10 @@ fun CreditItem(
     onClick: () -> Unit = {},
 ) {
     Surface(
-        modifier = if (enabled) Modifier.clickable { onClick() } else Modifier
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).then(if (enabled) Modifier.clickable { onClick() } else Modifier),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier
@@ -96,12 +104,12 @@ fun CreditItem(
                 with(MaterialTheme) {
                     Text(
                         text = title,
-                        maxLines = 1,
+                        maxLines = 3,
                         style = typography.titleMedium,
                         color = colorScheme.onSurface
                     )
                     Text(
-                        text = description.toString(),
+                        text = description.orEmpty(),
                         color = colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,

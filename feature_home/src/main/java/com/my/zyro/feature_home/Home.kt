@@ -6,6 +6,8 @@ import android.widget.Toast
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +32,7 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -75,8 +78,6 @@ import com.my.zyro.feature_settings.SettingsDrawer
 
 import com.my.zyro.resources.R
 
-import com.my.zyro.ui.components.ChipSection
-import com.my.zyro.ui.components.ParticleEffect
 import com.my.zyro.ui.components.UpdateDialog
 import com.my.zyro.ui.components.ZyroIconButton
 
@@ -215,10 +216,7 @@ fun Home(
 
     ) {
 
-        ParticleEffect(
-            modifier = Modifier
-                .fillMaxSize()
-        )
+
 
         Scaffold(
 
@@ -240,7 +238,7 @@ fun Home(
                                 "${stringResource(R.string.welcome)}, ${
                                     user?.globalName
                                         ?: user?.username
-                                        ?: ""
+                                        ?: "Zyro"
                                 }",
 
                             style =
@@ -331,7 +329,7 @@ fun Home(
 
                                     modifier =
                                         Modifier
-                                            .size(52.dp)
+                                            .size(40.dp)
                                             .border(
                                                 2.dp,
                                                 MaterialTheme.colorScheme.secondaryContainer,
@@ -379,13 +377,28 @@ fun Home(
                     Modifier.padding(padding),
 
                 verticalArrangement =
-                    Arrangement.spacedBy(16.dp)
+                    Arrangement.spacedBy(16.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 32.dp)
 
             ) {
 
                 item {
 
-                    ChipSection()
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("ZYRO", style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(stringResource(R.string.features), style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(stringResource(R.string.zyro_dashboard_description),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        }
+                    }
 
                     Text(
                         text =

@@ -9,6 +9,12 @@
 
 package com.my.zyro.ui.theme
 
+import android.os.Build
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.unit.dp
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -18,6 +24,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -52,45 +60,37 @@ fun getZyroColorScheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isHighContrastModeEnabled: Boolean = false,
 ): ColorScheme {
-    val primary = ZyroViolet
-    val primaryContainer = ZyroVioletDark
-    val secondary = ZyroCyan
-    val tertiary = ZyroAmber
-    val background = if (isHighContrastModeEnabled) ZyroBlack else ZyroGray900
-    val surface = ZyroGray800
-    val surfaceVariant = ZyroGray700
-
-    return ColorScheme(
-        primary = primary,
-        onPrimary = ZyroWhite,
-        primaryContainer = primaryContainer,
-        onPrimaryContainer = ZyroVioletLight,
-        secondary = secondary,
-        onSecondary = ZyroBlack,
-        secondaryContainer = ZyroCyan.copy(alpha = 0.2f),
-        onSecondaryContainer = ZyroCyan,
-        tertiary = tertiary,
-        onTertiary = ZyroBlack,
-        tertiaryContainer = ZyroAmber.copy(alpha = 0.2f),
-        onTertiaryContainer = ZyroAmber,
-        error = ZyroRose,
-        onError = ZyroWhite,
-        errorContainer = ZyroRose.copy(alpha = 0.2f),
-        onErrorContainer = ZyroRose,
-        background = background,
-        onBackground = ZyroGray100,
-        surface = surface,
-        onSurface = ZyroGray100,
-        surfaceVariant = surfaceVariant,
-        onSurfaceVariant = ZyroGray400,
-        outline = ZyroGray500,
-        outlineVariant = ZyroOutlineVariant,
-        scrim = ZyroScrim,
-        inverseSurface = ZyroGray100,
-        inverseOnSurface = ZyroBlack,
-        inversePrimary = ZyroVioletLight,
-        surfaceTint = surface,
-    )
+    return remember(darkTheme, isHighContrastModeEnabled) {
+        (if (darkTheme) darkColorScheme(
+        primary = Color(0xFF6DE0DB), onPrimary = Color(0xFF003735),
+        primaryContainer = Color(0xFF164B50), onPrimaryContainer = Color(0xFFB8F6EF),
+        secondary = Color(0xFFB8B9FF), onSecondary = Color(0xFF242457),
+        secondaryContainer = Color(0xFF303454), onSecondaryContainer = Color(0xFFE4E3FF),
+        tertiary = Color(0xFFFFD28C), onTertiary = Color(0xFF412D08),
+        background = if (isHighContrastModeEnabled) Color.Black else Color(0xFF0B1220),
+        onBackground = Color(0xFFE8EEF7),
+        surface = Color(0xFF111C2D), onSurface = Color(0xFFE8EEF7),
+        surfaceVariant = Color(0xFF1D2C40), onSurfaceVariant = Color(0xFFB5C2D4),
+        surfaceContainerLowest = Color(0xFF080F1A), surfaceContainerLow = Color(0xFF101A29),
+        surfaceContainer = Color(0xFF152235), surfaceContainerHigh = Color(0xFF1B2A3E),
+        surfaceContainerHighest = Color(0xFF24344A),
+        outline = Color(0xFF8393AA), outlineVariant = Color(0xFF304056),
+        error = Color(0xFFFFB4B0), onError = Color(0xFF690005),
+        errorContainer = Color(0xFF93000A), onErrorContainer = Color(0xFFFFDAD6)
+    ) else lightColorScheme(
+        primary = Color(0xFF006A68), onPrimary = Color.White,
+        primaryContainer = Color(0xFFB7F2EB), onPrimaryContainer = Color(0xFF00201F),
+        secondary = Color(0xFF555992), onSecondary = Color.White,
+        secondaryContainer = Color(0xFFE1E0FF), onSecondaryContainer = Color(0xFF111442),
+        background = Color(0xFFF3F6FC), onBackground = Color(0xFF172234),
+        surface = Color.White, onSurface = Color(0xFF172234),
+        surfaceVariant = Color(0xFFE6EDF6), onSurfaceVariant = Color(0xFF46566B),
+        surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xFFF4F7FC),
+        surfaceContainer = Color(0xFFEBF0F8), surfaceContainerHigh = Color(0xFFE3EAF4),
+        surfaceContainerHighest = Color(0xFFDCE4F0),
+        outline = Color(0xFF65768C), outlineVariant = Color(0xFFD0DAE8)
+    )).withOled(darkTheme && isHighContrastModeEnabled)
+    }
 }
 
 /**
@@ -110,47 +110,88 @@ fun ZyroTheme(
     val view = LocalView.current
     val window = view.context.findWindow()
 
-    if (isDynamicColorEnabled) {
+    if (isDynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         // Material You dynamic colors (Android 12+)
-        val colorScheme = if (darkTheme) dynamicDarkColorScheme(context)
-                          else dynamicLightColorScheme(context)
-
-        window?.let {
-            WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+        val systemScheme = remember(context, darkTheme) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        rememberSystemUiController(window).apply {
+        val colorScheme = remember(systemScheme, darkTheme, isHighContrastModeEnabled) {
+            systemScheme.withOled(darkTheme && isHighContrastModeEnabled)
+        }
+
+        val systemUiController = rememberSystemUiController(window)
+        LaunchedEffect(window, view, darkTheme, colorScheme.background) {
+            window?.let { WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = !darkTheme }
+            systemUiController.apply {
             setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
             setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+            }
         }
 
         MaterialTheme(
             colorScheme = colorScheme,
             typography = AppTypography,
+            shapes = ZyroShapes,
             content = content
         )
     } else {
         // Monet color science from user-selected seed color and palette style
         val seedColor = Color(LocalSeedColor.current)
         val paletteStyle = palettesMap[LocalPaletteStyleIndex.current] ?: PaletteStyle.Vibrant
-        val tonalPalettes = seedColor.toTonalPalettes(paletteStyle)
+        val tonalPalettes = remember(seedColor, paletteStyle) { seedColor.toTonalPalettes(paletteStyle) }
 
         CompositionLocalProvider(LocalTonalPalettes provides tonalPalettes) {
-            val colorScheme = dynamicColorScheme(isLight = !darkTheme)
+            val base = dynamicColorScheme(isLight = !darkTheme)
+            val brand = getZyroColorScheme(darkTheme, isHighContrastModeEnabled)
+            val selectedScheme = if (LocalSeedColor.current == com.my.zyro.preference.DEFAULT_SEED_COLOR) brand
+            else base.copy(
+                background = brand.background, onBackground = brand.onBackground,
+                surface = brand.surface, onSurface = brand.onSurface,
+                surfaceVariant = brand.surfaceVariant, onSurfaceVariant = brand.onSurfaceVariant,
+                surfaceContainerLowest = brand.surfaceContainerLowest,
+                surfaceContainerLow = brand.surfaceContainerLow,
+                surfaceContainer = brand.surfaceContainer,
+                surfaceContainerHigh = brand.surfaceContainerHigh,
+                surfaceContainerHighest = brand.surfaceContainerHighest,
+                outlineVariant = brand.outlineVariant
+            )
 
-            window?.let {
-                WindowCompat.getInsetsController(it, view)?.isAppearanceLightStatusBars = !darkTheme
+            val colorScheme = remember(selectedScheme, darkTheme, isHighContrastModeEnabled) {
+                selectedScheme.withOled(darkTheme && isHighContrastModeEnabled)
             }
-            rememberSystemUiController(window).apply {
+            val systemUiController = rememberSystemUiController(window)
+            LaunchedEffect(window, view, darkTheme, colorScheme.background) {
+                window?.let { WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = !darkTheme }
+                systemUiController.apply {
                 setSystemBarsColor(color = Color.Transparent, darkIcons = !darkTheme)
                 setNavigationBarColor(color = colorScheme.background, darkIcons = !darkTheme)
+                }
             }
 
             MaterialTheme(
                 colorScheme = colorScheme,
                 typography = AppTypography,
+            shapes = ZyroShapes,
                 content = content
             )
         }
     }
 }
 
+
+val ZyroShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(18.dp), large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp)
+)
+
+internal fun ColorScheme.withOled(enabled: Boolean): ColorScheme = if (!enabled) this else copy(
+    background = Color.Black, surface = Color.Black,
+    surfaceDim = Color.Black, surfaceBright = Color(0xFF141414),
+    surfaceContainerLowest = Color.Black, surfaceContainerLow = Color(0xFF050505),
+    surfaceContainer = Color(0xFF0A0A0A), surfaceContainerHigh = Color(0xFF101010),
+    surfaceContainerHighest = Color(0xFF181818), surfaceVariant = Color(0xFF181818),
+    surfaceTint = Color.Transparent, onSurface = Color(0xFFF2F2F2),
+    onBackground = Color(0xFFF2F2F2), onSurfaceVariant = Color(0xFFC7C7C7),
+    outline = Color(0xFF929292), outlineVariant = Color(0xFF333333)
+)
