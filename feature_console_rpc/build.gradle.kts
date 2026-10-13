@@ -10,6 +10,7 @@ android {
 }
 
 dependencies {
+    testImplementation(libs.junit)
     implementation (projects.featureRpcBase)
     implementation (libs.material.icons.extended)
     implementation (libs.coil)

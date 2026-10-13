@@ -19,7 +19,7 @@ jobs:
           packages: platform-tools
       - uses: gradle/actions/setup-gradle@v4
       - name: Test gateway and build preview
-        run: bash gradlew :gateway:test :theme:testDebugUnitTest :app:assembleDebug --no-daemon
+        run: bash gradlew :gateway:test :theme:testDebugUnitTest :feature_console_rpc:testDebugUnitTest :app:assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: Zyro-interface-preview
