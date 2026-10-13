@@ -173,15 +173,14 @@ dependencies {
     implementation(libs.material3.windows.size)
 }
 
-gradle.taskGraph.whenReady {
-    val buildsReleaseApk = allTasks.any {
-        it.project == project && (it.name == "assembleRelease" || it.name == "packageRelease" || it.name == "bundleRelease")
-    }
-    if (buildsReleaseApk) {
-        val signing = android.signingConfigs.findByName("release")
-        check(signing != null && signing.storeFile?.isFile == true && !signing.storePassword.isNullOrBlank() &&
-            !signing.keyAlias.isNullOrBlank() && !signing.keyPassword.isNullOrBlank()) {
-            "Release requires the permanent signing keystore and all signing properties."
-        }
+val releaseRequested = gradle.startParameter.taskNames.any {
+    val task = it.substringAfterLast(':')
+    task.contains("release", ignoreCase = true) || task in setOf("build", "assemble", "bundle")
+}
+if (releaseRequested) {
+    val signing = android.signingConfigs.findByName("release")
+    check(signing != null && signing.storeFile?.isFile == true && !signing.storePassword.isNullOrBlank() &&
+        !signing.keyAlias.isNullOrBlank() && !signing.keyPassword.isNullOrBlank()) {
+        "Release requires the permanent signing keystore and all signing properties."
     }
 }
