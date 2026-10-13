@@ -177,7 +177,9 @@ val releaseRequested = gradle.startParameter.taskNames.any {
     val task = it.substringAfterLast(':')
     task.contains("release", ignoreCase = true) || task in setOf("build", "assemble", "bundle")
 }
-if (releaseRequested) {
+// Explicit unsigned builds are used only as input for offline APK signing.
+val unsignedBuild = providers.gradleProperty("zyroUnsignedBuild").orNull == "true"
+if (releaseRequested && !unsignedBuild) {
     val signing = android.signingConfigs.findByName("release")
     check(signing != null && signing.storeFile?.isFile == true && !signing.storePassword.isNullOrBlank() &&
         !signing.keyAlias.isNullOrBlank() && !signing.keyPassword.isNullOrBlank()) {

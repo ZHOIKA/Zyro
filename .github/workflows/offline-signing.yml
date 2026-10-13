@@ -1,0 +1,39 @@
+name: Zyro Offline Signing Build
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/offline-signing.yml'
+      - 'app/build.gradle.kts'
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test and build release for offline signing
+        run: bash gradlew :gateway:test :theme:testDebugUnitTest :app:assembleRelease -PzyroUnsignedBuild=true --no-daemon
+      - name: Collect unsigned APK and signing tools
+        shell: bash
+        run: |
+          mkdir -p offline-signing
+          APK=$(find app/build/outputs/apk/release -name '*unsigned.apk' -print -quit)
+          test -n "$APK"
+          cp "$APK" offline-signing/Zyro-1.1.1-unsigned.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          cp "$BUILD_TOOLS/lib/apksigner.jar" offline-signing/apksigner.jar
+          cp "$BUILD_TOOLS/zipalign" offline-signing/zipalign
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zyro-offline-signing
+          path: offline-signing/
+          if-no-files-found: error
