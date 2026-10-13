@@ -23,6 +23,7 @@ import com.my.zyro.feature_rpc_base.Constants
 import com.my.zyro.feature_rpc_base.setLargeIcon
 import com.my.zyro.resources.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import com.my.zyro.domain.interfaces.Logger
@@ -128,17 +129,6 @@ class CustomRpcService : Service() {
         presenceJob?.cancel()
         presenceJob = serviceScope.launch {
             try {
-            // Update notification with large icon
-            notificationManager.notify(
-                Constants.NOTIFICATION_ID,
-                notificationBuilder
-                    .setLargeIcon(
-                        rpcImage = customRpcConfig?.largeImg?.toRpcImage(),
-                        context = this@CustomRpcService
-                    )
-                    .build()
-            )
-
             // Build and transmit presence payload
             customRpcConfig?.let { config ->
                 zyroRPC.apply {
@@ -179,6 +169,14 @@ class CustomRpcService : Service() {
                     build()
                 }
             }
+            // Notification artwork is optional and must not delay presence transmission.
+            val builder = withTimeoutOrNull(2_000L) {
+                notificationBuilder.setLargeIcon(
+                    rpcImage = customRpcConfig?.largeImg?.toRpcImage(),
+                    context = this@CustomRpcService
+                )
+            } ?: notificationBuilder
+            notificationManager.notify(Constants.NOTIFICATION_ID, builder.build())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
